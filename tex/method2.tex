@@ -5,14 +5,192 @@
 \chapter{基于梯度上升决策树的函数抽取重构推荐} 
 \label{chpt:relatedwork}
 
-\section{系统要求}
+\section{引言}
+\section{问题描述}
+
+\begin{table}[!t]
+  \renewcommand{\arraystretch}{1.3}
+  % if using array.sty, it might be a good idea to tweak the value of
+  % \extrarowheight as needed to properly center the text within the cells
+  \caption{Method-level Metrics of the Candidates in the Example}
+  \label{example_metrics}
+  \centering
+  %% Some packages, such as MDW tools, offer better commands for making tables
+  %% than the plain LaTeX2e tabular which is used here.
+  %\begin{tabular}{|p{0.1cm}p{0.55cm}p{0.6cm}p{0.6cm}p{0.8cm}||p{0.1cm}p{0.55cm}p{0.6cm}p{0.6cm}p{0.8cm}|}
+  %\begin{tabular}{|p{0.1cm}p{0.55cm}p{0.6cm}p{0.6cm}p{0.8cm}||p{0.1cm}p{0.55cm}p{0.6cm}p{0.6cm}p{0.8cm}|}
+  \begin{tabular}{ccccc|ccccc}
+  \toprule No. &Cand &M1 &M2 &M3 &No. &Cand &M1 &M2 &M3\\ \midrule 1 &2-7 &8 &0 &6
+   &9 &3-10 &6 &0 &6\\
+   2 &2-8 &10 &0 &6 &10 &3-11 &13 &0 &6\\
+   3 &\textbf{2-9} &11 &0 &6 &11 &3-12 &21 &0 &6\\
+   4 &2-10 &13 &0 &6 &12 &4-9 &0 &0 &3\\
+   5 &2-11 &28 &3 &6 &13 &4-10 &0 &0 &3\\
+   6 &2-12 &36 &10 &6 &14 &5-7 &0 &0 &3\\
+   7 &3-8 &4 &0 &6 &15 &5-8 &0 &0 &3\\
+   8 &3-9 &5 &0 &6 &16 &5-9 &0 &0 &4\\
+   \bottomrule
+  \end{tabular}
+  \end{table}
+  
+
+
+\begin{figure*}
+  \centering
+    \begin{lstlisting}[columns=fullflexible,label={lst:label}]
+   public String calculateSignature(...) {
+          String baseUrl = baseUrl(uri);
+          String encodedParams = encodedParams(oauthTimestamp, nonce, formParams, queryParams);
+          StringBuilder sb = StringUtils.stringBuilder();
+          sb.append(method);
+          sb.append('&');
+          Utf8UrlEncoder.encodeAndAppendQueryElement(sb, baseUrl);
+          sb.append('&');
+          Utf8UrlEncoder.encodeAndAppendQueryElement(sb, encodedParams);
+          ByteBuffer rawBase = StringUtils.charSequence2ByteBuffer(sb, UTF_8);
+          byte[] rawSignature = mac.digest(rawBase);
+          return Base64.encode(rawSignature);
+      }
+    \end{lstlisting}
+    \caption{An Example Method from AsyncHttpClient Library}
+    \label{marker}
+  \end{figure*}
+\section{研究方法}
+\subsection{特征提取算法}
+
+\begin{figure}[bth]
+  {\scriptsize
+	\begin{center}
+	  \begin{algorithmic} [1]
+%                        \Procedure{feature\_extract}{$m,b,P$}
+			\REQUIRE  : The input method \textit{m}, the selected block
+			\textit{b} and the set of program elements \textit{P}
+			\ENSURE The feature vector % \textit{feature\_extract(\textit{m},\textit{b},\textit{P})
+			\STATE $S_M  \leftarrow getStmts(m)$
+			\STATE $S_B  \leftarrow getStmts(b)$
+			\FOR{$p$ in $P$}
+				\STATE $E \leftarrow getElmts(b, p)$
+				\FOR{$e$ in $E$}			
+					\STATE $freq_M \leftarrow getFreq(m, e)$
+					\STATE $freq_B \leftarrow getFreq(b, e)$
+					\STATE $ratio_e \leftarrow freq_B / freq_M$
+				\ENDFOR
+				\STATE $idx \leftarrow \textit{idxOfMax}(ratio_E)$
+				\STATE $cp \leftarrow ratio_{idx}$
+				\STATE $loc \leftarrow getLOC(b)$				
+				\STATE $count \leftarrow 0$				
+				\FOR{$s$ in $S_B$}
+					\IF{$E_{idx}$ in $getElmts(s)$}
+						\STATE $count \leftarrow count + 1$
+					\ENDIF
+				\ENDFOR
+				\STATE $ch \leftarrow count / loc$ 
+				\STATE $setFeature(p, cp, ch)$
+			        \ENDFOR
+%                                \EndProcedure
+		\end{algorithmic}
+	\end{center}
+        }
+	\caption{Extraction Algorithm of Metric-related Features}
+	\label{feature_algorithm}
+\end{figure}
+\subsection{梯度上升决策树模型}
+\subsection{候选函数抽取重构操作生成}
+\section{实验设置}
+\subsection{数据集和对比实验}
+\begin{table}[!t]
+  \renewcommand{\arraystretch}{1.3}
+  % if using array.sty, it might be a good idea to tweak the value of
+  % \extrarowheight as needed to properly center the text within the cells
+  \caption{Statistics of Subject Systems}
+  \label{benchmark}
+  \centering
+  \begin{tabular}{ccc}
+  \toprule 
+  Projects &Methods &Refactor.\\ \midrule
+  JHotDraw &56 &56 \\ 
+  Junit &25 &25 \\ 
+  MyWebMarket &23 &35 \\ 
+  SelfPlanner &12 &13 \\ 
+  Wikidev &14 &26 \\ \midrule
+  Total &130 &155 \\ 
+  \bottomrule
+  \end{tabular}
+  \end{table}
+\subsection{评价指标}
+\section{实验结果}
+
+\begin{table}[!t]
+  \renewcommand{\arraystretch}{1.3}
+  % if using array.sty, it might be a good idea to tweak the value of
+  % \extrarowheight as needed to properly center the text within the cells
+  \caption{Accuracy of Different Approaches}
+  \label{accuracy}
+  \centering
+  \begin{tabular}{cc|ccc}
+  \toprule
+   Tools &Tolerance &Precision &Recall &F-measure\\ 
+  \hline
+  \multirow{4}{*}{GEMS$^{GB}$}&$1\%$ &\bf{22.5\%} &\bf{54.2\%} &\bf{31.8\%} \\ 
+  &$2\%$ &\bf{28.5\%} &\bf{59.8\%} &\bf{38.6\%} \\ 
+  &$3\%$ &\bf{34.3\%} &\bf{62.6\%} &\bf{44.3\%} \\ 
+  \hline
+  \multirow{4}{*}{JExtract}&$1\%$ &12.6\% &52.2\% &20.4\% \\ 
+  &$2\%$ &13.1\% &\bf{59.3\%} &21.5\% \\ 
+  &$3\%$ &15.0\% &61.9\% &24.2\% \\ 
+  \hline
+  \multirow{4}{*}{SEMI}&$1\%$ &12.9\% &38.0\% &19.2\% \\ 
+  &$2\%$ &14.6\% &47.0\% &22.3\% \\ 
+  &$3\%$ &18.8\% &55.5\% &28.1\% \\ 
+  \hline
+  \multirow{4}{*}{JDeodorant}&$1\%$ &17.4\% &14.8\% &16.0\% \\
+  &$2\%$ &21.1\% &18.4\% &19.7\% \\ 
+  &$3\%$ &28.0\% &23.8\% &25.7\% \\ 
+  \bottomrule
+  \end{tabular}
+  \end{table}
+
+
+
+  
+\begin{table}[!t]
+  \renewcommand{\arraystretch}{1.3}
+  % if using array.sty, it might be a good idea to tweak the value of
+  % \extrarowheight as needed to properly center the text within the cells
+  \caption{Accuracy in Long methods}
+  \label{long_methods}
+  \centering
+  \begin{tabular}{cc|ccc}
+  \toprule
+   Tools &Tolerance &Precision &Recall &F-measure\\ 
+  \hline
+  \multirow{4}{*}{GEMS$^{GB}$}&$1\%$ &13.3\% &31.9\% &18.8\% \\ 
+  &$2\%$ &\bf{17.4\%} &\bf{41.5\%} &\bf{24.5\%} \\ 
+  &$3\%$ &\bf{25.3\%} &\bf{46.2\%} &\bf{32.7\%} \\ 
+  \hline
+  \multirow{4}{*}{JExtract}&$1\%$ &6.6\% &16.1\% &9.4\% \\ 
+  &$2\%$ &8.0\% &19.3\% &11.3\% \\ 
+  &$3\%$ &8.0\% &19.3\% &11.3\% \\ 
+  \hline
+  \multirow{4}{*}{SEMI}&$1\%$ &\bf{16.4\%} &\bf{38.7\%} &\bf{23.0\%} \\ 
+  &$2\%$ &\bf{17.9\%} &\bf{41.9\%} &\bf{25.0\%} \\ 
+  &$3\%$ &19.1\% &45.1\% &26.9\% \\ 
+  \hline
+  \multirow{4}{*}{JDeodorant}&$1\%$ &12.0\% &9.6\% &10.7\% \\
+  &$2\%$ &14.3\% &12.9\% &13.5\% \\ 
+  &$3\%$ &16.0\% &12.9\% &14.2\% \\ 
+  \bottomrule
+  \end{tabular}
+  \end{table}
+
+\section{讨论}
+\section{本章小结}
 
 
 
 
 模板仅在 TeXLive 2016，TeXLive 2018 下测试通过。对于其它 TeX 发行版可能需要做个别修改。
 
-\section{NKThesis 使用说明}
 
 本模板可以使用以下方式编译:
 \begin{enumerate}
@@ -45,13 +223,11 @@
 注意：使用 \XeLaTeX\ 编译时，\XeTeX\ 的版本应不低于 0.9995.0(MiKTeX 2.8 或者 TeXLive 2009)。
 
 
-\section{引用章节号}
 \label{sec:ex:A}
 
 引用章节号请参考如下格式: \ref{chpt:relatedwork}\ref{sec:ex:A}.
 
 
-\section{中英文间隔}
 
 使用 \XeLaTeX\ 编译时，会自动在中英文转换时添加必要的空格。 使用 [PDF]\LaTeX\
 编译时仅忽略中文之间的空格，而中英文之间的空格予以保留。
@@ -64,7 +240,6 @@
 可以看出，以上两行用 \XeLaTeX\ 编译的结果是相同的。
 
 
-\section{NKThesis 预调用的宏包}
 
 NKThesis 已经调用以下宏包，您无须重新调用。
 
@@ -78,18 +253,10 @@ NKThesis 已经调用以下宏包，您无须重新调用。
 \end{center}
 
 
-\section{图表}
 \label{sec:relatedwork:table}
 
-插图的例子：
 
-\begin{figure}
-  \centering
-  \includegraphics[viewport=0 0 2984 969,width=40mm]{nankaidaxue.pdf}  
-  \caption{\label{fig:nku}南开大学}
-\end{figure}
 
-\section{字体}
 
 一般情况下, 您不需要显式地设置字体. 如果确实需要, 请使用以下命令
 
@@ -102,13 +269,11 @@ NKThesis 已经调用以下宏包，您无须重新调用。
 \end{verbatim}
 
 
-\section{参考文献} \label{sec:relatedwork:ref}
 参考文献引用:
 \cite{ChenCheChen2001,Nadkarni-1992,Hua-Wang-1973}
 \cite{ZhuKeZhen,Huo,Example}\cite{JiangXiZhou,Timoshenko,Zhang-Wang,Ding,GB6447-86}
 \cite[Theorem 2.1]{ZhuKeZhen}
 
-\subsection{录入参考文献}
 
 本模板采用 biblatex 宏包管理参考文献。如果你对此不熟悉，可以
 \begin{enumerate}
@@ -118,80 +283,9 @@ NKThesis 已经调用以下宏包，您无须重新调用。
 
 
 
-\section{一些建议}
-\subsection{关于分数的写法}
-\label{sec:relatedwork:equation}
-
-
-\LaTeX 提供宏命令\verb+\frac+, 用以打印分数. 为使得版面整齐, 该命令的使用应遵循以下原则:
-
-\begin{enumerate}
-\item 仅在分行表达式中使用,
-\item 不嵌套使用,
-\item 不在上下标中使用.
-\end{enumerate}
-
-也就是说, 行内表达式和上下标中出现分数时一律用 $a/b$表示, 如
-$(x+2)/((3x^2+4)(7+y))$. 下面是居中表达式:
-
-\[
- x^2 = y^{1/2} +3.
-\]
-
-多行表达式: 尽量在加、减、乘、等号前换行. 在乘号前换行时,
-下一行首用 \string\times:
-\def\iint{\mathop{\int\!\!\!\int}}\def\calG{\mathcal G}
-\begin{eqnarray}
-&&\left|(W_{\psi_1}f)(a,b)-(W_{\psi_1}f)(a_j,b_{j,k})\right|^{2}\nonumber\\
-&=&\frac{1}{C^{2}_{\varphi}}\Bigg|\iint_{\calG} (W_{\varphi}f)(s,t) \nonumber\\
-&&\qquad\times \Bigg( (W_{\psi_1}\varphi)\left(\frac{a}{s},
-\frac{b-t}{s}\right)
-     -(W_{\psi_1}\varphi)\left(\frac{a_{j}}{s}, \frac{b_{j,k}-t}{s}\right)\Bigg)
-  \frac{dsdt}{s^{d+1}}\Bigg|^2 \nonumber\\
-&\le& \frac{1}{C^2_{\varphi}} \iint_{\calG} |(W_{\varphi}f)(s,t)|^2 \nonumber\\
-&&\qquad \times\left| (W_{\psi_1}\varphi)\left(\frac{a}{s},
-\frac{b-t}{s}\right)
-    -(W_{\psi_1}\varphi)\left(\frac{a_{j}}{s}, \frac{b_{j,k}-t}{s}\right)\right|
-   \frac{dsdt}{s^{d+1}}  \nonumber\\
-&&\qquad \times   \iint_{\calG}\!
- \left|(W_{\psi_1}\varphi)\left(\frac{a}{s}, \frac{b-t}{s}\right)
-    -(W_{\psi_1}\varphi)\left(\frac{a_{j}}{s}, \frac{b_{j,k}-t}{s}\right)\right|
- \frac{ ds dt}{s^{d+1}} \nonumber\\
-&=& \frac{1}{C^2_{\varphi}} ....  \label{eq:a0}
-\end{eqnarray}
-
-
-\subsection{标点}
-科技文献中一般用半角标点,，, 请参考《中国科学》发表的论文.
-
-如果使用全角标点, 可以使用
-\begin{verbatim}
-  \punctstyle{<style>}
-\end{verbatim}
-选择标点样式, 有效值为
-\begin{verbatim}
-  quanjiao (所有标点符号占一个汉字宽度，
-            相邻两个标点占一个半汉字宽度)
-  banjiao  (所有标点符号占半个汉字宽度)
-  hangmobanjiao (所有标点符号占一个汉字宽度，行末行首半角)
-  kaiming  (句号、叹号、问号占一个汉字宽度，其他标点占半个汉字宽度)
-\end{verbatim}
-缺省为全角式。注意：不论选择哪种样式，都提供行末对齐(margin kerning)功能。
 
 
 
-\begin{Theorem} \label{thm:latex}
-\LaTeX 的输出是最完美的.
-\end{Theorem}
-
-先证明一个引理
-\begin{Lemma} \label{thm:tex}
-\TeX 文件在不同操作系统下的排版结果完全一致.
-\end{Lemma}
-
-\begin{proof}
-这是证明.
-\end{proof}
 
 
 \begin{proof}[定理~\ref{thm:latex}的证明]
@@ -228,7 +322,6 @@ x&=&y+z \\
 引用:   定理\ref{thm:latex}的推论是什么呢？
 方程式编号:  由(\ref{eq:a1})(\ref{eq:aa2})式.
 
-\subsection{列举环境:  enumerate}
 
 环境 enumerate 已经被改写，增加了一个可选参数[字符串], 用以控制所进。例如，
 \begin{verbatim}
