@@ -37,20 +37,20 @@
 代码进行建模，因此计算复杂度低，在面对大规模软件系统时效率较高。然而，引起测试用例失效的软件缺陷可能
 不止一个，忽略不同软件缺陷之间的相互影响，可能导致缺陷定位的准确性降低。其主要原因有两个方面：（1）
 未被失效用例覆盖的代码可能也包含缺陷；（2）不同软件缺陷共同路径上的正确代码被失效用例覆盖的频率较
-大，导致可疑度偏高。本文引入相关统计量的概念，通过将测试用例执行的覆盖信息作为特征，测试用例执行结果
-作为标签，将原问题转化为数据挖掘问题，从而推测特征（代码）对执行结果的重要性。
+大，导致可疑度偏高。本文引入相关统计量的概念，通过将测试用例执行的分支覆盖信息作为特征，测试用例执行结果
+作为标签，将原问题转化为数据挖掘问题，从而推测分支覆盖特征对执行结果的重要性。
 
 本章具有以下贡献：
 
 （1）本章提出了基于相关统计量的缺陷定位方法，从数据的角度分析测试用例的覆盖信息，利用特征选择中特征
-对分类结果重要性的概念，将对测试用例执行结果影响较大的代码的可疑度提高。
+对分类结果重要性的概念，选择对测试用例执行结果影响较大的分支。
 
 （2）该方法在传统的基于覆盖分析的缺陷定位方法上引入了相关统计量，同样不需要对源代码进行建模，计算复
 杂度较低。
 
 （3）针对多缺陷之间相互影响的问题，相关统计量为每个测试用例选择距离最近的同类和异类样本，计算测试用
-例在每个特征上距离同类和异类的距离，从而计算特征对测试执行结果的重要性。该方法在很大程度上避免了在衡
-量特征重要性时多错误之间的相互影响。
+例在每个分支覆盖特征上距离同类和异类的距离，从而计算分支覆盖特征对测试执行结果的重要性。该方法在很大
+程度上避免了多缺陷之间的相互影响。
 
 （4）在开源软件系统上的实验证明，本章方法相比较传统启发式的基于覆盖分析的缺陷定位方法在准确性上具有
 一定的提升，通过提高缺陷查找效率缩短了纠错性维护的时间和人力成本。
@@ -59,7 +59,7 @@
 \section{研究动机与相关工作}
 传统的基于覆盖分析的缺陷定位方法，基于启发式的思想使用特定公式计算程序元素的可疑度，其优点在于计算复
 杂度低，面对大规模软件系统的效率较高，但也存在一定的问题：由于基于覆盖分析的方法不对程序源代码进行建
-模，而是从统计的角度根据代码被失效和成功覆盖的频率推测代码的可疑度，因此对于存在多错误的失效用例，难
+模，而是从统计的角度根据代码被失效和成功覆盖的频率推测代码的可疑度，因此对于存在多缺陷的程序，难
 以区分不同缺陷导致的失效用例，而缺陷之间的相互影响是导致多缺陷定位的准确性下降的主要原因。
 
 \subsection{研究动机}
@@ -136,7 +136,7 @@ zheng2006statistical}，对每类失效用例采用单缺陷的方法进行处�
 
 与本文方法相近的方法是最近邻法~\cite{renieres2003fault}，该方法通过对每个失效用例找出与其最相似的成
 功用例，并计算两者之间的不同来推测用例失效的原因。与之不同的是，本文受数据挖掘领域的特征选择所启发，
-借鉴相关统计量的概念，将缺陷代码视为对测试用例执行结果影响较大的特征，提出了缺陷相关统计量，使被执行
+借鉴相关统计量的概念，将缺陷代码视为对测试用例执行结果影响较大的分支覆盖特征，提出了缺陷相关统计量，使被执行
 后越容易导致用例失效的代码可疑度越高。
 
 \section{基于相关统计量的缺陷定位算法}
@@ -152,7 +152,7 @@ zheng2006statistical}，对每类失效用例采用单缺陷的方法进行处�
       \label{fig:fault_flow}
 \end{figure}
 
-如图~\ref{fig:fault_flow}所示，基于覆盖分析的缺陷定位技术（以分支为例）主要包括以下三步：
+如图~\ref{fig:fault_flow}所示，基于覆盖分析的缺陷定位技术（以分支覆盖特征为例）主要包括以下三步：
 
 （1）运行测试用例，收集测试用例运行过程中的覆盖信息，得到分支覆盖特征谱；
 
@@ -254,94 +254,217 @@ Relief特征选择模型由Kira~\cite{kira1992feature}等人提出，最早用�
 
 为了衡量特征对相似样本的区分能力，Kira~\cite{kira1992feature}等人引入了相关统计量的概念，计算每个特
 征与二分类类别之间的相关性，并将其作为特征的权重，提出了一种基于特征权重的算法，通过移除权重低于特定
-阈值的特征来进行特征选择。具体来说，给定样本集$\mathcal D=\{(x_1,y_1),(x_2,y_2),...,(x_n,y_n)\}$，其中
-$x_i=\{x_{i1},x_{i2},...,x_{iq}\}$，$q$为原始特征的个数。从训练样本集$\mathcal D$中随机抽取一个样本
-$(x_i,y_i)$，Relief特征选择模型分别为样本$(x_i,y_i)$寻找一个同类样本$(x_{i,nh},y_i)$（记作
-$near-hit_i$）和一个异类样本$(x_{i,nm},-y_i)$（记作$near-miss_i$），然后分别计算$x_i$与$x_{i,nh}$和
-$x_i$与$x_{i,nm}$在第$j$个特征上的距离之差：
+阈值的特征来进行特征选择。具体来说，给定样本集$\mathcal D=\{(x_1,y_1),(x_2,y_2),...,(x_n,y_n)\}$，和
+原始特征集$\mathcal F=\{f_1,f_2,...,f_q\}$，其中$q$为原始特征的个数，
+$x_i=\{x_{i1},x_{i2},...,x_{iq}\}$，。从训练样本集$\mathcal D$中随机抽取一个样本$(x_i,y_i)$，Relief
+特征选择模型分别为样本$(x_i,y_i)$寻找一个同类样本$(x_{i,nh},y_i)$（记作$near-hit_i$）和一个异类样本
+$(x_{i,nm},-y_i)$（记作$near-miss_i$），然后分别计算$x_i$与$x_{i,nh}$和$x_i$与$x_{i,nm}$在第$j$个特
+征上的距离之差：
 \begin{equation}
-       \delta^j_i = -diff(x_i^j, x_{i,nh}^j)^2 + diff(x_i^j,x_{i,nm}^j)^2, \label{eq:delta}
+       \delta^j_i = -\text{diff}(x_i^j, x_{i,nh}^j)^2 + \text{diff}(x_i^j,x_{i,nm}^j)^2, \label{eq:delta}
 \end{equation}
-当第$j$个特征为离散型时：
-\begin{equation}
-       diff(x^j_a,x^j_b) = \begin{cases} 0, & \textit{if}~x^j_a=x^j_b \\ 
+当特征$f_j$为离散型时：
+\begin{equation}\label{eq:lisan}
+       \text{diff}(x^j_a,x^j_b) = \begin{cases} 0, & \textit{if}~x^j_a=x^j_b \\ 
   1, & \text{ otherwise, }  
   \end{cases} 
 \end{equation}
-当第$j$个特征为连续型时：
+当特征$f_j$为连续型时：
 \begin{equation}
        \text{diff}(x^j_a,x^j_b) = |(x^j_a-x^j_b)|.
 \end{equation}
-重复上述过程，从样本集中随机抽取样本$M$次，得到关于第$j$个样本的相关统计量：
+重复上述过程，从样本集中随机抽取样本$M$次，得到关于特征$f_j$的相关统计量：
 \begin{equation}
-       \delta^j = \frac{1}{M}\sum_{i=1}^M{-diff(x_i^j, x_{i,nh}^j)^2 + diff(x_i^j,x_{i,nm}^j)^2}. 
+       \delta^j = \frac{1}{M}\sum_{i=1}^M{-\text{diff}(x_i^j, x_{i,nh}^j)^2 + \text{diff}(x_i^j,x_{i,nm}^j)^2}. \label{eq:Delta}
 \end{equation}
 
-从公式~\eqref{eq:delta}中可以看出，在第$j$个特征上，当$x_i$与其最近同类$x_{i,nh}$距离小，与其最近异类
-$x_{i,nm}$距离大时，说明此时该特征对区分不同类别的样本是有益的，因此增加第$j$个特征的权重
-$\delta^j_i$；反之，若$x_i$与其最近同类$x_{i,nh}$距离大，而与其最近异类$x_{i,nm}$距离小时，
-说明此时该特征对区分不同类别的样本是无益的，此时减小第$j$个特征的权重$\delta^j_i$。
+从公式~\eqref{eq:delta}中可以看出，在第$j$个特征上，当$x_i$与其最近同类$x_{i,nh}$距离小，与其最近异
+类$x_{i,nm}$距离大时，说明此时该特征对区分不同类别的样本是有益的，因此增加特征$f_j$的权重
+$\delta^j_i$；反之，若$x_i$与其最近同类$x_{i,nh}$距离大，而与其最近异类$x_{i,nm}$距离小时，说明此时
+该特征对区分不同类别的样本是无益的，此时减小特征$f_j$的权重$\delta^j_i$。
 
 \begin{algorithm}[H]
 \caption{Relief特征选择算法}\label{alg:relief}
 \KwIn{样本数据集$\mathcal D$，原始特征集$\mathcal F$，相关统计量阈值$\Gamma$，样本抽取次数$M$；}\\
-\KwOut{特征子集$\mathcal {V}$，每个特征的相关统计量$\Delta$；} \\
-初始化特征子集$\mathcal {V} \leftarrow \bm \emptyset$；\\ 
-初始化每个特征的相关统计量$\bm \Delta^j \leftarrow \bm 0$；\\ 
+\KwOut{特征子集$\mathcal {V}$，特征的相关统计量$\delta$；} \\
+初始化特征子集$\mathcal {V} \leftarrow \emptyset$；\\ 
+初始化每个特征的相关统计量$\bm \delta^j \leftarrow \bm 0$；\\ 
 根据样本标签将样本数据集$\mathcal D$划分为正类$\mathcal D^+$和负类$\mathcal D^-$；\\
 \For {$i=1$ to $|M|$} {
      从样本数据集$\mathcal D$中随机抽取一个样本$(x_i,y_i)$；\\
      从数据集$\mathcal D^+$和$\mathcal D^-$中分别寻找距离$x_i$最近的两个样本，其中与$(x_i,y_i)$同类的样本为$(x_{i,nh},y_i)$，与$(x_i,y_i)$异类的样本为$(x_{i,nm},y_i)$；\\
      \For {$j=1$ to $|\mathcal F|$} {
-            根据当前样本$(x_i,y_i)$计算在第$j$个特征上的相关统计量$\delta^j_i$（公式~\eqref{eq:delta}）；\\
-            更新第$j$个特征的相关统计量$\delta^j \leftarrow \delta^j + \delta^j_i$；\\
+            根据当前样本$(x_i,y_i)$计算在特征$f_j$的相关统计量$\delta^j_i$（公式~\eqref{eq:delta}）；\\
+            更新特征$f_j$的相关统计量$\delta^j \leftarrow \delta^j + \delta^j_i$；\\
      }
 }
 \For{$j=1$ to $|\mathcal F|$} {
+      计算平均相关统计量$\delta^j \leftarrow \frac{\delta^j}{M}$；\\
       \If{$\delta^j \geqslant \Gamma$}{
-            添加第$j$个特征进入特征子集$\mathcal V$；\\
+            添加特征$f_j$进入特征子集$\mathcal V$；\\
       }
 }
 
-\textbf{return} 特征子集$\mathcal {V}$，特征的相关统计量$\Delta$。\\
+\textbf{return} 特征子集$\mathcal {V}$，每个特征的相关统计量$\delta$。\\
 \end{algorithm}
 
 算法~\ref{alg:relief}为Relief特征选择模型的算法，Relef为每个测试用例寻找距离最近的同类和异类样本，距
 离同类越近、距离异类越远的特征被认为越能够区分不同类别的样本。从算法~\ref{alg:relief}中可以看出
-Relief特征选择的运行时间与原始特征集的规模$|mathcal F|$和样本的随机抽样次数$M$线性相关，因此该算法的
-效率较高。
+Relief特征选择的运行时间与原始特征集的规模$|\mathcal F|$和样本的随机抽样次数$M$线性相关，因此该算法
+的效率较高。
 
 \subsection{缺陷相关统计量}
-缺陷定位的目的是查找能够引起程序行为失效的程序代码，因此对缺陷代码的执行与程序行为失效之间必然存在某
-种关联性。不考虑外部因素，失效用例的执行路径中应该覆盖一个或多个软件缺陷，而不覆盖任何缺陷代码的测试
-用例理论上是一定会执行成功。因此，是否覆盖缺陷代码与测试用例执行是否失效之间存在一定的相关性。本文假
-设是否覆盖缺陷代码是判断程序行为是否失效的重要因素，借鉴特征选择中的相关统计量概念计算代码对程序行为
-结果的重要性，从而定位软件缺陷。在基于覆盖分析的缺陷定位基础上，受特征选择启发，引入了相关统计量的概
-念，并提出了缺陷相关统计量来计算代码的可疑度，提高了定位缺陷的额准确率和效率。 受Relief特征选择算法
-的启发，给定程序$P$，测试用例集$T$中的每个测试用例可视为一条样本数据。将测试用例对代码的覆盖情况作为
-该测试用例的特征，根据测试用例的执行结果对其进行标记，成功用例被标记为正类、失效用例被标记为负类。测
-试用例集中第$i$个测试用例可通过$T_i=\{x_{i1},x_{i2},x_{i3},...,x_{in}\}$来表示，其中$n$为程序中所含
-语句或分支的个数，$x_{ij}$表示测试用例$T_i$是否覆盖第$j$个程序元素（覆盖为1，不覆盖为0）。
+\textbf{（1）原理与定义}
 
+借鉴特征选择中的相关统计量概念，是否覆盖缺陷代码可以被认为是对相似测试用例的执行结果有区分能力的重要
+因素。缺陷定位的目的是查找能够引起程序行为失效的程序代码，因此对缺陷代码的执行与程序行为失效之间必然
+存在某种关联性。不考虑外部因素，失效用例的执行路径中应该覆盖一个或多个软件缺陷，而不覆盖任何缺陷代码
+的测试用例理论上一定是成功用例。因此，是否覆盖缺陷代码与测试用例执行是否失效之间存在一定的相关性。本
+文假设可以通过测试用例的执行路径来预测测试用例是否失效，因此，将测试用例在执行过程中对代码的覆盖信息
+作为输入数据，测试用例的执行结果作为二分类标签，可以构建一个二分类模型。可以通过估算覆盖特征对相似测
+试用例是否失效的区分能力，来选择重要的覆盖特征，从而定位软件缺陷。需要注意的是，本章接下来以分支覆盖
+特征为例，但实际上本章提出的缺陷相关统计量可用于其它程序谱，如语句、谓词、定义对等。
 
+给定程序$P$和测试用例集$\mathcal T$，将该测试用例集作为样本数据集$\mathcal D$，则测试用例集中的一个
+测试用例$T_i$可视为一个样本$\mathcal D_i=(x_i,y_i)$，其中$x_i$表示测试用例$T_i$对代码的分支覆盖特
+征，用$x_i=\{x_{i1},x_{i2},x_{i3},...,x_{in}\}$来表示，其中$n$为程序中所含语句或分支等程序元素的个
+数，也是原始特征的个数。$x_{ij}$为：
+\begin{equation}
+      x_{ij} = 
+       \begin{cases}
+             1, & \mbox{测试用例}T_i\mbox{覆盖第}j\mbox{个程序元素}\\ 
+  0, & \mbox{测试用例}T_i\mbox{未覆盖第}j\mbox{个程序元素}，  
+       \end{cases}
+\end{equation}
+也是样本的原始特征；$y_i$表示测试用例$T_i$的执行结果（成功或失效），也是样本的标签$y_i$：
+\begin{equation}
+      y_i = 
+       \begin{cases}
+             1, & T_i\mbox{是成功用例}\\ 
+  -1, & T_i\mbox{是失效用例}.  
+       \end{cases}
+\end{equation}
 
-Relief算法
+\textbf{（2）存在的问题}
+
+结合基于覆盖分析的缺陷定位技术，本文认为缺陷代码的覆盖信息与测试用例执行的结果应该有以下相关性：
+\begin{itemize}
+      \item 失效用例的执行路径覆盖至少一个缺陷；
+      \item 不覆盖缺陷代码的测试用例一定是成功用例；
+      \item 被失效用例覆盖越多、成功用例覆盖越少的代码越有可能是缺陷代码。
+\end{itemize}
+
+本章在基于覆盖分析的缺陷定位基础上，受特征选择启发，引入了相关统计量的概念来定位缺陷。相关统计量最早
+被用来做二分类之前的特征选择，其主要思路是将对相似样本有区分能力的特征作为重要的特征。当使用相关统计
+量来进行缺陷定位时，根据公式~\ref{eq:Delta}，特征$f_j$的相关统计量$\delta^j$较高的可能存在以下四种原
+因：
+\begin{itemize}
+      \item 当$x_{ij}=0$时，$y_i=1$总是成立；
+      \item 当$x_{ij}=0$时，$y_i=-1$总是成立；
+      \item 当$x_{ij}=1$时，$y_i=1$总是成立；
+      \item 当$x_{ij}=1$时，$y_i=-1$总是成立。
+\end{itemize}
+
+换句话说，相关统计量所代表的含义仅仅是特征与分类结果的相关性，而与测试用例执行结果相关的代码并不一定包含缺陷代码，直接使用特征选择的概念来计算相关统计量，容易导致以下代码的相关统计量偏高：
+
+a. 当测试用例的执行路径未覆盖某个分支时，测试用例总是成功执行；
+
+b. 当测试用例的执行路径未覆盖某个分支时，测试用例总是失效执行；
+
+c. 当测试用例的执行路径覆盖某个分支时，测试用例总是成功执行；
+
+d. 当测试用例的执行路径覆盖某个分支时，测试用例总是失效执行。
+
+根据公式~\ref{eq:Delta}，上述四种可能中的代码对测试用例执行结果的区分能力较强，因此相关统计量较高。
+然而，这与定位缺陷代码的目的并不完全一致。虽然覆盖缺陷代码与测试用例执行结果是否失效存在一定的关联
+性，但是相关统计量高的代码未必可疑度高，因为对测试用例的执行结果有较强区分能力的代码包括但并不完全等
+价于覆盖后容易导致测试用例失效执行的代码。具体来说，根据缺陷分支覆盖特征与测试用例执行结果的相关性，
+在上面的四种相关统计量较高的可能情况中，只有a和d两种情况暗示着该分支有较大可能是缺陷相关分支，而b和c
+两种情况则完全相反，暗示着该分支很有可能是缺陷无关分支。
+
+\textbf{（3）缺陷相关统计量}
+
+Relief算法中的相关统计量只用来衡量特征与二分类结果的相关性，而并未给出特征是如何影响分类结果的。为了
+研究相关统计量与代码可疑度之间的关系，本文提出缺陷相关统计量的概念来估算程序代码与缺陷性相关性，，并
+以此作为代码的可疑度。首先，由于测试用例的执行路径只有``覆盖''和``不覆盖''某个程序元素两种可能，因此
+分支覆盖特征是离散型0-1变量，我们将公式~\ref{eq:lisan}代入公式~\ref{eq:delta}可得相关统计量为：
+\begin{equation}
+       \delta^j_i = -\llbracket x_i^j \neq x_{i,nh}^j \rrbracket + \llbracket x_i^j \neq x_{i,nm}^j \rrbracket, \label{eq:delta2}
+\end{equation}
+从公式~\ref{eq:delta2}中可以看出，给定分支$f_j$，随机抽取一个测试用例$x_i$并寻找距离该用例最近的一个
+同类用例$x_{i,nh}$（near-hit）和一个异类用例$x_{i,nm}$（near-miss）。只要在分支$f_j$上$x_{i,nh}$与
+$x_i$的覆盖情况相同，而$x_{i,nm}$与$x_i$的覆盖情况不相同，则有$\llbracket x_i^j \neq x_{i,nh}^j
+\rrbracket=0$，$\llbracket x_i^j \neq x_{i,nm}^j \rrbracket=1$，此时$\delta_i^j=1$，增加分支$f_j$的
+相关统计量$\delta^j$。
+
+考虑一种情况，当随机抽取的测试用例$x_i$是失效用例（$y_i=-1$）时，若此时$x_i^j=x_{i,nh}^j=0$，且有
+$x_{i,nm}=1$，则按照公式~\ref{eq:delta2}可得，此时$\delta_i^j=1$，应该增加相关统计量$\delta^j$。然
+而，在这种情况下，失效用例$x_i$和$x_{i,nh}$均未覆盖第$j$个代码块，反而成功用例$x_{i,nm}$覆盖了第$j$
+个代码块。根据代码被失效执行越多、成功执行越少则可疑度越高的原理，此时减少覆盖分支$f_j$的可疑度。
+
+由此可以看出，Relief算法中相关统计量的更新只与样本和最近同类、异类样本的距离有关，而缺陷定位中覆盖特
+征的可疑度的更新还需要考虑随机抽取的测试用例$x_i$的类别$y_i$（成功或失效）以及其是否覆盖分支$x_i^j$。本文与传统的覆盖分析法基于类似的思想，即被失效用例覆盖越多、成功用例覆盖越少的代码可疑度越
+高。因此，根据随机抽取测试用例的类别和对分支$f_j$的覆盖情况不同，可分为以下四种情况：
+\begin{itemize}
+      \item 当随机抽取的测试用例为失效用例且未覆盖分支$f_j$时，若此时$\delta_i^j$较大，则说明分支
+      $f_j$同样未被相似的失效用例所覆盖，而是被相似的成功用例所覆盖，此时应该减小分支$f_j$的可疑度；
+      \item 当随机抽取的测试用例为失效用例且覆盖了分支$f_j$时，若此时$\delta_i^j$较大，则说明分支$f_j$同样被相似的失效用例所覆盖，且未被相似的成功用例所覆盖，此时应该增加分支$f_j$的可疑度；
+      \item 当随机抽取的测试用例为成功用例且未覆盖分支$f_j$时，若$\delta_i^j$较大，则说明此时分支$f_j$未被相似的成功用例所覆盖，而是被相似的失效用例所覆盖，因此应该增加分支$f_j$的可疑度；
+      \item 当随机抽取的测试用例为成功用例且覆盖了分支$f_j$时，若$\delta_i^j$较大，则说明此时分支$f_j$同样被相似的成功用例所覆盖，且未被相似的失效用例所覆盖，因此应该减小分支$f_j$的可疑度。
+\end{itemize}
+
+表~\ref{tbl:list}中总结了在不同的情况下，相关统计量与可疑度的关系：
+\begin{center}
+\tablecaption{相关统计量与可疑度的关系}\label{tbl:list}
+\begin{tabular}{|l|l|l|}
+\hline
+测试用例 & 是否覆盖分支$f_j$ & 相关统计量$\delta^j$与可疑度$\epsilon^j$的关系\\ \hline
+\multirow{2}{*}{失效用例} & 未覆盖 & $\epsilon^j$随着$\delta^j$的增加而减小\\
+& 覆盖 & $\epsilon^j$随着$\delta^j$的增加而增加\\ \hline
+\multirow{2}{*}{成功用例} & 未覆盖 & $\epsilon^j$随着$\delta^j$的增加而增加\\
+& 覆盖 & $\epsilon^j$随着$\delta^j$的增加而减小\\ \hline
+\end{tabular}
+\end{center}
+
+表~\ref{tbl:list}中的$\epsilon^j$表示分支$f_j$的可疑度。可以看出，随机抽取测试用例后，对每个分支的可
+疑度的更新与该测试用例是否成功执行以及是否覆盖该分支有关。根据表~\ref{tbl:list}，本文提出了缺陷相
+关统计量来计算可疑度$\epsilon$。给定分支$f_j$，随机抽取测试用例$(x_i,y_i)$后，对分支$f_j$的可疑度改
+变量为：
+\begin{equation}
+       \epsilon_i^j = -y_ix_i^j(-\llbracket x_i^j \neq x_{i,nh}^j \rrbracket + \llbracket x_i^j \neq x_{i,nm}^j \rrbracket). \label{eq:epsilon}
+\end{equation}
+
+最后通过从样本集$\mathcal D$中随机抽取样本M次并重复上述计算过程，可得到关于分支$f_j$的可疑度：
+\begin{equation}
+       \epsilon^j = \frac{1}{M}\sum_{i=1}^M{ -y_ix_i^j(-\llbracket x_i^j \neq x_{i,nh}^j \rrbracket + \llbracket x_i^j \neq x_{i,nm}^j \rrbracket)}. \label{eq:epsilon2}
+\end{equation}
 
 \subsection{代码排查}
-The principle to map a branch or function element that is with high suspiciousness to the
-corresponding code is as below: (1) If the element is one branch of the branch structure, go to (2);
-else go to (5). (2) Check the corresponding branch structure judgment of this branch. (3) Check the
-executable code which probably have infect on the judgment result in the basic block where the above
-judgment is. (4) Check control dependent on executable code of this branch, which means whether this
-branch executed or not determines whether this part of executable code execute or not, after the
-check turn to (6). (5) It is time to check the function coverage feature elements. Check all
-executable code that must execute in the functions, including the judgments of partial branch
-structure. (6) Order the results by suspiciousness, check next feature elements. Taking branch in
-Fig. 1 as example, according to step (2), firstly check judgment of the branch structure which this
-branch is in, namely the fifth line code; Since there is no executable code which can influence the
-judgment result and located in the same basic blocks with this fifth line code, step (3) is passed
-over; Finally check the code of control independent on branch B2.f, namely sentence nine (including
-other branches judgments)
+给程序$P$，在执行测试用例集后，收集分支覆盖信息得到如图~\ref{fig:spectra}所示的分支覆盖特征谱，利用
+Relief算法~\ref{alg:relief}计算分支特征的相关统计量，并提出缺陷相关统计量的计算方式（公式
+~\ref{eq:epsilon2}）来代替原有的相关统计量，并将所有分支特征按照缺陷相关统计量由高至低排序，得到分支
+覆盖特征序列$\mathcal B=\{B_1,B_2,B_3,...,B_n\}$，最后按照可疑度由高至低进行排查。
+
+算法~\ref{alg:search}为根据分支覆盖特征的可疑度排查代码的算法。以图~\ref{fig:spectra}中的分支$B_2.f$
+为例，由于$B_2.f$为分支结构$B_2$的一个分支，因此首先排查其所在分支结构$B_2$的判定语句，即第4行语句；
+由于不存在与该判定语句在同一个基本块且可以影响到判定结果的语句，因此直接检查分支$B_2.f$中的可执行语
+句（*i=*i-1）。
+
+\begin{algorithm}[H]
+\caption{代码排查算法}\label{alg:search}
+\KwIn{程序$P$，分支覆盖特征序列$\mathcal B$；}\\
+\For {$i=1$ to $|B|$} {
+      //对分支覆盖特征$B_i$进行排查 \\
+      \If{$B_i$是分支结构的一个分支}{
+            排查$B_i$所在分支结构的判定语句$S_j$；\\
+            排查与判定语句$S_j$在一个代码基本块内，且可能影响到其判定结果的语句；\\
+            排查在$B_i$内且控制依赖于分支$B_i$的语句；\\
+      }
+      \Else{
+            排查与$B_i$同在一个函数的所有必须被执行的可执行语句，包括部分分支结构的判定语句；\\
+      }
+}
+\end{algorithm}
 
 \section{实验设置}
 \subsection{实验对象}
@@ -354,13 +477,22 @@ other branches judgments)
 \subsection{实验结果}
 \subsection{结果分析}
 \subsection{适用性讨论}
+
+多错误分类
+
 本以分支覆盖特征谱为例，提出了基于相关统计量的缺陷定位方法。值得注意的是，本章方法也同样适用于其它
 程序元素。
 依赖测试用例集的质量。如果特别不平衡的话，还是容易导致某些缺陷被放大，某些缺陷被缩小。
 \section{本章小结}
-本章提出在覆盖分析的基础上使用相关统计量来定位缺陷，通过为每个测试用例选择距离其最近的同类和异类测试
-用例，为每个失效用例找到最有可能与其由同一缺陷出发的失效用例。虽然基于相关统计量的缺陷定位与聚类分析
-的方法是基于相似的核心思想，即由相同缺陷引起的失效用例具有一定的相似性，但本文方法在该思想的基础上加
-了较大的约束，即本文认为只有距离失效用例最近的失效用例才可能由同一缺陷引起，因此在很大程度上避免了对
-聚类分析准确性的依赖，且不需要聚类分析中的参数设置（如缺陷个数等参数）。
+，并提出了缺陷相关统计量来计算
+代码的可疑度，提高了定位缺陷的额准确率和效率。虽然基于相关统计量的缺陷定位与聚类分析的方法是基于相似
+的核心思想，即由相同缺陷引起的失效用例具有一定的相似性，但本文方法在该思想的基础上加了较大的约束，即
+本文认为只有距离失效用例最近的失效用例才可能由同一缺陷引起，因此在很大程度上避免了对聚类分析准确性的
+依赖，且不需要聚类分析中的参数设置（如缺陷个数等参数）。
+
+通过为每个测试用例选择距离其最近的同类和异类测试用例，为每个失效用例找到最有可能与其由同一缺陷出发的
+失效用例。
+
+对相似测试用例的执行结果有区分能力的代码不一定是缺陷代码，
+本章提出在覆盖分析的基础上使用相关统计量来定位缺陷，选择对相似测试用例的执行结果有区分能力的覆盖特征作为可能的缺陷代码。
 
