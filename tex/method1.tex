@@ -454,7 +454,7 @@ $f_j$的缺陷相关统计量：
       \text{distance}(x_a,x_b) = \sum_{i=1}^n{|x_a^i-x_b^i|}
 \end{equation}
 
-\subsection{代码排查}
+\subsection{代码排查方案}
 如图~\ref{fig:fault_flow}所示，在获得测试用例集$/mathcal T$对程序$P$执行过程中的
 分支覆盖信息后，本文将以测试用例作为样本数据，提出了缺陷相关统计量，利用算法
 ~\ref{alg:relief}估算分支特征的可疑度（算法~\ref{alg:relief}中的第10行改为缺陷相
@@ -486,34 +486,89 @@ Relief算法~\ref{alg:relief}计算分支特征的相关统计量，并提出缺
 }
 \end{algorithm}
 
-\section{实验设置}
-本节评估了基于相关统计量的缺陷定位技术和其它主流的基于覆盖分析的缺陷定位方法的有
-效性，在开源数据集上通过对比实验验证了本文方法的有效性。
+\section{实验设计}
+本节评估了基于相关统计量的缺陷定位技术和其它主流的基于覆盖分析的缺陷定位方法的有效性，在开源数据集上
+通过对比实验验证了本文方法的有效性。
+
 \subsection{实验对象}
-为了评估缺陷定位方法的有效性，本章使用来自开源软件仓库
-~\footnote{http://sir.unl.edu/portal/index.php}（Software Infrastructure
-Repository，简称SIR）的西门子程序集和flex作为实验对象。西门子程序集通常作为基准表~\ref{}是关于实验对象的统计数据和相关描述。
 
- The Siemens set consists of seven programs, and each of
-them contains hundreds of lines of code. Flex is a real-life program in UNIX,
-with more than ten thousands lines of code a version. SIR provides faulty
-versions as well as test suites. Detailed information is shown in Table 1. Like
-previous research, we exclude faults that always produce correct outputs.
-Besides, some kinds of faults that could not be located by SFL are also
-excluded, such as absence of code and segment faults. So the number of faults we
-use actually is 180. In our experiments, three metrics i.e. Tarantula, Jaccard
-and Ochiai are utilized to calculate suspiciousness. Tarantula is proposed to
-locate faults using runtime coverage of statements. Jaccard and Ochiai are two
-coefficients introduced. 
+为了评估缺陷定位方法的有效性，选取了来自开源软件仓库~\footnote{http://sir.unl.edu/portal/index.php}
+（Software Infrastructure Repository，以下简称SIR）的Siemens程序集和flex程序作为实验对象。表
+~\ref{tbl:subjects1}中列出了本次实验中实验对象的相关统计数据。
 
 
-\subsection{对比实验}
-使用
+\begin{center}
+\tablecaption{实验对象}\label{tbl:subjects1}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+实验程序 & 代码行数 & 缺陷版本数 & 测试用例数\\ \hline
+print\_tokens & 563 & 3 &4130\\ \hline
+print\_tokens2 & 508 & 8 & 4115\\ \hline
+replace & 563 & 28 & 5542\\ \hline
+schedule & 410 & 6 & 2650\\ \hline
+schedule2 & 307 & 4 & 2710\\ \hline
+tot\_info & 406 & 20 & 1052\\ \hline
+tcas & 173 & 39 & 1608\\ \hline
+flex & 12\textasciitilde14k & 51 & 567\\ \hline
+\end{tabular}
+\end{center}
+
+其中，Siemens程序集经常作为基准程序集用来评估缺陷定位方法的有效性~\cite{guanlian2013,con-prob2018}，
+包括7个C语言程序，其中print\_tokens和print\_tokens2为词法分析器，replace为一个模式替换程序，schedule
+和schedule2为两个优先级调度程序，tot\_info可用来进行信息度量，tcas为ADL解释器。除程序源代码外，SIR提
+供了植入缺陷的程序版本以及测试用例集。除了Siemens程序集外，使用flex词法分析器来评估方法的有效性。由
+于flex是Unix系统中真实使用的程序，因此除了植入的缺陷外，其中还包含部分真实存在的软件缺陷。从表
+~\ref{tbl:subjects1}中可以看出，Siemens程序集中的代码行数在170\textasciitilde565之间，属于小规模程
+序，而flex的代码行数在12\textasciitilde14k之间，属于大规模程序。
+
+需要注意的是，表~\ref{tbl:subjects1}中所列的缺陷版本数量为经过筛选后的缺陷版本。跟传统的基于覆盖分析
+的缺陷定位研究相似，本文在选择缺陷程序版本的时候，进行以下筛选：（1）排除了无法被现有测试用例集所触
+发的缺陷版本，即在现有测试用例在执行该缺陷版本时均为成功用例，无法根据测试用例的执行结果判断此时是否
+存在缺陷；（2）排除了由代码缺失引起的缺陷，因为基于覆盖分析的缺陷定位研究通常根据代码的覆盖信息与测
+试用例的执行估算代码的可疑度，而缺失的代码既不会有覆盖信息，也不存在相应的可疑度，因此在评估方法有效
+性时存在问题；（3）排除了有可能引起程序运行时出现异常（segment fault），导致程序运行突然中止的缺陷，
+由于基于覆盖分析的缺陷定位技术依赖于测试用例集在整个程序执行过程中对代码的覆盖信息，而可能出现异常中
+止的程序导致部分测试用例的覆盖信息不完全，在计算可疑度的时候与其它测试用例不一，因故在实验中将这部分
+缺陷排除。最后在实验中一共使用了108个缺陷，并在实验中通过控制一个程序中所注入缺陷的个数来分别构造单
+缺陷和多缺陷的程序。
+
+本章在ubuntu14.10系统下进行实验，使用的gcc编译器版本为4.4.1。在执行测试用例之前，使用开源语法分析工
+具antlr（版本为3.5.1）在程序的入口和各个分支处进行插桩。然后，通过脚本执行SIR提供的测试用例集，并用
+antlr收集分支覆盖信息，得到分支覆盖特征谱。通过比较测试用例在程序的正确版本和缺陷版本上的执行结果是
+否相同，判定测试用例为成功用例或失效用例。
 
 \subsection{评价指标}
+缺陷定位技术的目的是帮助软件维护人员尽快找到缺陷相关代码，因此缺陷定位技术的有效性和效率通常体现在如
+何通过排查尽可能少的代码，尽快定位到缺陷相关代码。基于覆盖分析的缺陷定位技术，通常根据覆盖特征谱按照
+特定计算公式计算代码的可疑度，然后按照可疑度由高至低排查相关代码。因此，为了尽可能排查较少的代码，缺
+陷相关代码的可疑度排名通常越高越好。
+
+为了评估方法的有效性，本章使用定准率$\beta$和排查率$P_{search}$两个度量方式来从不同的角度对方法进行
+比较。定准率表示定位到缺陷相关语句所不需要检查的代码的比例，可表示为：
+\begin{equation}
+       \beta = \frac{L-L_s}{L-1},\label{eq:beta}
+\end{equation}
+其中$L$表示程序中可执行代码的总行数，$L_s$为定位到某个缺陷所需要排查的可执行代码的总行数。从公式
+~\ref{eq:beta}中可以看出，给定程序$P$，程序中的可执行代码总数固定后，定位到缺陷所需要排查的行数越
+小，定准率越高。从公式~\ref{eq:beta}中可以看出，缺陷定位技术并不一定会提高定位缺陷的效率，当定准率
+$\beta$小于一定阈值时，反而会降低定位缺陷的效率。例如，当$\beta$小于缺陷按照代码执行顺序所在的相对位
+置比时，利用缺陷定位方法查找缺陷的效率比按照代码执行的顺序逐步排查更低。
+
+代码排查率$P_{search}$表示定位到缺陷所需要排查的代码行数与可执行代码总行数的百分比，可表示为：
+\begin{eqnarray}
+      P_{search}=\frac{|L_s|}{L}\times100\%
+\end{eqnarray}
+与定准率相反，当缺陷个数固定时，代码排查率越低表示定位到缺陷所需要排查的可执行代码比例越小，因此缺陷
+定位效率越高。
+
 \section{实验结果与分析}
-\subsection{实验结果}
-\subsection{结果分析}
+\subsection{单缺陷对比实验}
+为了评估本文提出的基于相关统计量的缺陷定位方法的有效性，本文与三个经典的可疑度计算方法进行比较，分别
+是Tarantula、Jaccard、与Ochiai。
+
+表~\cite{}为实验的结果
+
+\subsection{多缺陷对比实验}
 \subsection{适用性讨论}
 
 多错误分类
