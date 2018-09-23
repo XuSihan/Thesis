@@ -140,7 +140,7 @@ zheng2006statistical}，对每类失效用例采用单缺陷的方法进行处�
 后越容易导致用例失效的代码可疑度越高。
 
 \section{基于相关统计量的缺陷定位算法}
-本章在基于覆盖分析的缺陷定位技术的基础上引入了相关统计量的概念，从数据挖掘的角度计算代码对程序执行结
+本章在基于覆盖分析的缺陷定位技术的基础引入了相关统计量的概念，从数据挖掘的角度计算代码对程序执行结
 果的重要性，通过为每个测试用例寻找距离最近的测试用例，在很大程度上避免了多缺陷相互之间的影响，提升了
 缺陷定位的效率和准确率。
 
@@ -439,7 +439,8 @@ $f_j$，随机抽取测试用例$(x_i,y_i)$后，关于分支$f_j$在测试用�
 \begin{equation}
        \epsilon_i^j = -y_ix_i^j(-\llbracket x_i^j \neq x_{i,nh}^j \rrbracket + \llbracket x_i^j \neq x_{i,nm}^j \rrbracket). \label{eq:epsilon}
 \end{equation}
-通过从样本集$\mathcal D$中随机抽取样本M次并重复上述计算过程，可得到关于分支
+
+最后通过从样本集$\mathcal D$中随机抽取样本M次并重复上述计算过程，可得到关于分支
 $f_j$的缺陷相关统计量：
 \begin{equation}
        \epsilon^j = \frac{1}{M}\sum_{i=1}^M{ -y_ix_i^j(-\llbracket x_i^j \neq x_{i,nh}^j \rrbracket + \llbracket x_i^j \neq x_{i,nm}^j \rrbracket)}. \label{eq:epsilon2}
@@ -452,9 +453,6 @@ $f_j$的缺陷相关统计量：
 \begin{equation}
       \text{distance}(x_a,x_b) = \sum_{i=1}^n{|x_a^i-x_b^i|}
 \end{equation}
-
-
-
 
 \subsection{代码排查}
 如图~\ref{fig:fault_flow}所示，在获得测试用例集$/mathcal T$对程序$P$执行过程中的
@@ -489,7 +487,25 @@ Relief算法~\ref{alg:relief}计算分支特征的相关统计量，并提出缺
 \end{algorithm}
 
 \section{实验设置}
+本节评估了基于相关统计量的缺陷定位技术和其它主流的基于覆盖分析的缺陷定位方法的有
+效性，在开源数据集上通过对比实验验证了本文方法的有效性。
 \subsection{实验对象}
+为了评估缺陷定位方法的有效性，本章使用来自开源软件仓库
+~\footnote{http://sir.unl.edu/portal/index.php}（Software Infrastructure
+Repository，简称SIR）的西门子程序集和flex作为实验对象。西门子程序集通常作为基准表~\ref{}是关于实验对象的统计数据和相关描述。
+
+ The Siemens set consists of seven programs, and each of
+them contains hundreds of lines of code. Flex is a real-life program in UNIX,
+with more than ten thousands lines of code a version. SIR provides faulty
+versions as well as test suites. Detailed information is shown in Table 1. Like
+previous research, we exclude faults that always produce correct outputs.
+Besides, some kinds of faults that could not be located by SFL are also
+excluded, such as absence of code and segment faults. So the number of faults we
+use actually is 180. In our experiments, three metrics i.e. Tarantula, Jaccard
+and Ochiai are utilized to calculate suspiciousness. Tarantula is proposed to
+locate faults using runtime coverage of statements. Jaccard and Ochiai are two
+coefficients introduced. 
+
 
 \subsection{对比实验}
 使用
