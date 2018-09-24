@@ -487,8 +487,8 @@ Relief算法~\ref{alg:relief}计算分支特征的相关统计量，并提出缺
 \end{algorithm}
 
 \section{实验设计}
-本节评估了基于相关统计量的缺陷定位技术和其它主流的基于覆盖分析的缺陷定位方法的有效性，在开源数据集上
-通过对比实验验证了本文方法的有效性。
+本节评估了基于相关统计量的缺陷定位技术和其它主流的基于覆盖分析的缺陷定位方法的有效性，设计了两组实
+验，分别针对单缺陷程序和多缺陷程序进行错误定位，在开源数据集上通过对比实验验证了本文方法的有效性。
 
 \subsection{实验对象}
 
@@ -532,12 +532,12 @@ flex & 12\textasciitilde14k & 51 & 567\\ \hline
 缺陷排除。最后在实验中一共使用了108个缺陷，并在实验中通过控制一个程序中所注入缺陷的个数来分别构造单
 缺陷和多缺陷的程序。
 
+\subsection{评估方法}
 本章在ubuntu14.10系统下进行实验，使用的gcc编译器版本为4.4.1。在执行测试用例之前，使用开源语法分析工
 具antlr（版本为3.5.1）在程序的入口和各个分支处进行插桩。然后，通过脚本执行SIR提供的测试用例集，并用
 antlr收集分支覆盖信息，得到分支覆盖特征谱。通过比较测试用例在程序的正确版本和缺陷版本上的执行结果是
 否相同，判定测试用例为成功用例或失效用例。
 
-\subsection{评价指标}
 缺陷定位技术的目的是帮助软件维护人员尽快找到缺陷相关代码，因此缺陷定位技术的有效性和效率通常体现在如
 何通过排查尽可能少的代码，尽快定位到缺陷相关代码。基于覆盖分析的缺陷定位技术，通常根据覆盖特征谱按照
 特定计算公式计算代码的可疑度，然后按照可疑度由高至低排查相关代码。因此，为了尽可能排查较少的代码，缺
@@ -561,14 +561,98 @@ $\beta$小于一定阈值时，反而会降低定位缺陷的效率。例如，�
 与定准率相反，当缺陷个数固定时，代码排查率越低表示定位到缺陷所需要排查的可执行代码比例越小，因此缺陷
 定位效率越高。
 
+\subsection{对比实验}
+为了评估方法的有效性设计了两组实验，分别针对单缺陷和多缺陷程序进行对比实验。由于基于相关统计量的方法
+与基于覆盖分析的缺陷定位方法类似，都只需要收集测试用例对程序的覆盖信息以及执行结果，因此本章只与基于
+覆盖分析的缺陷定位技术相比较。其它流行的缺陷定位技术，如基于程序切片的方法~\cite{}等，大多结合了传统
+的程序动态或静态分析方法，虽然在准确度上得到了一定的提高，但也增加了缺陷定位的成本。基于覆盖分析的缺
+陷定位方法，由于其计算复杂度较低，因此对于大规模软件系统有较高的适用性。
+
+
+在面向单缺陷程序的实验中，选取了5种典型的基于覆盖分析的定位方法，分别是
+Tarantula~\cite{jones2005empirical}、Jaccard~\cite{abreu2007accuracy}、
+Ochiai~\cite{abreu2007accuracy}以及基于最近邻的交集和并集算法~\cite{renieres2003fault}进行比较。其
+中，Tarantula基于被失效用例覆盖越多、成功用例覆盖越少的测试用例越有可能是失效用例的经典假设，Jaccard
+和Ochiai是两个相关系数。基于最近邻的方法与本文方法较为相近，其通过为每个失效用例寻找最相似的成功用例
+来进行缺陷定位。与之不同的是，本文受Relief特征选择启发，通过选择对测试用例执行结果影较大的覆盖特征来
+定位缺陷，因此本文对每个失效用例分别找出其最相似的成功和失效用例，根据它们在特征上的距离动态调整特征
+的相关统计量。
+
+在面向多缺陷程序的实验中，选取了两种面向多缺陷程序的缺陷定位策略，分别是``One-bug-at-a-time''策略
+~\cite{klahr1988cognitive}和基于聚类分析的多缺陷定位方法~\cite{jones2007debugging}。前者使用
+Tarrantula、Jaccard、Ochiai三种方法计算可疑度后，每次只定位并修复一个缺陷，若修复后还存在失效用例，
+则继续进行缺陷定位与修复，直至所有用例都成功执行；后者使用聚类分析将测试用例划分成不同簇，将同一簇内
+的失效用例视为由同一缺陷引起的，然后当作单缺陷程序处理。基于聚类分析的方法与基于相关统计量的方法基于
+相似的假设，即由同一缺陷引起的失效用例在覆盖信息上具有一定的相似性。然而，与基于聚类分析的方法不同的
+是。本章方法在上述假设上添加了约束，即针对每一个失效用例，本方法认为只有距离其最近的失效用例与其为同
+一缺陷导致的，在很大程度上避免了对来自不同缺陷的失效用例的误判，同时也避免了对聚类分析的准确性的依
+赖。
+
 \section{实验结果与分析}
-\subsection{单缺陷对比实验}
-为了评估本文提出的基于相关统计量的缺陷定位方法的有效性，本文与三个经典的可疑度计算方法进行比较，分别
-是Tarantula、Jaccard、与Ochiai。
+\subsection{单缺陷程序}
 
-表~\cite{}为实验的结果
+\begin{center}
+\tablecaption{Siemens单缺陷版本定位效果比较}\label{tbl:single-siemens}
+\begin{tabular}{ccccccc}
+\toprule
+$P_{search}$(\%) & REL & TAR & JAC & OCH & UNI & INT\\ \hline
+0\textasciitilde1 & 10 & 5 & 6 & 8 & 3 & 0 \\ 
+1\textasciitilde5 & 13 & 7 & 8 & 11 & 6 & 0 \\ 
+5\textasciitilde10 & 11 & 11 & 10 & 9 & 4 & 3 \\ 
+10\textasciitilde20 & 8 & 9 & 8 & 9 & 7 & 4 \\ 
+20\textasciitilde30 & 4 & 8 & 7 & 8 & 11 & 4 \\ 
+30\textasciitilde40 & 5 & 6 & 6 & 4 & 10 & 9 \\ 
+40\textasciitilde50 & 2 & 4 & 4 & 2 & 8 & 13 \\ 
+50\textasciitilde60 & 2 & 3 & 3 & 3 & 4 & 12 \\ 
+60\textasciitilde70 & 1 & 1 & 2 & 0 & 2 & 8 \\ 
+70\textasciitilde80 & 0 & 2 & 2 & 2 & 1 & 3 \\ 
+80\textasciitilde90 & 1 & 0 & 1 & 0 & 1 & 1 \\ 
+90\textasciitilde100 & 0 & 1 & 1 & 1 & 0 & 0 \\ 
+\bottomrule
+\end{tabular}
+\end{center}
 
-\subsection{多缺陷对比实验}
+为了评估方法在单缺陷程序上的有效性，分别在Siemens程序集和Unix系统上的flex程序上进行实验，包括108个缺
+陷版本（如表~\ref{tbl:subjects1}所示）。表~\ref{tbl:tbl:single-fault}为在单缺陷程序上的实验结果，其
+中REL表示本章提出的基于相关统计量的缺陷定位方法。
+
+\begin{center}
+\tablecaption{Flex单缺陷版本定位效果比较}\label{tbl:single-flex}
+\begin{tabular}{ccccccc}
+\toprule
+$P_{search}$(\%) & RELE & TAR & JAC & OCH & UNION & INTER\\ \hline
+0\textasciitilde1 & 11 & 9 & 8 & 10 & 4 & 1 \\ 
+1\textasciitilde5 & 15 & 11 & 12 & 13 & 5 & 0 \\ 
+5\textasciitilde10 & 7 & 8 & 10 & 9 & 2 & 2 \\ 
+10\textasciitilde20 & 9 & 7 & 5 & 7 & 9 & 6 \\ 
+20\textasciitilde30 & 4 & 1 & 3 & 4 & 8 & 3 \\ 
+30\textasciitilde40 & 1 & 4 & 4 & 0 & 11 & 8 \\ 
+40\textasciitilde50 & 0 & 0 & 2 & 3 & 7 & 11 \\ 
+50\textasciitilde60 & 1 & 1 & 1 & 3 & 4 & 9 \\ 
+60\textasciitilde70 & 2 & 0 & 2 & 1 & 0 & 7 \\ 
+70\textasciitilde80 & 0 & 4 & 1 & 0 & 0 & 3 \\ 
+80\textasciitilde90 & 1 & 3 & 1 & 0 & 1 & 0 \\ 
+90\textasciitilde100 & 0 & 3 & 2 & 1 & 0 & 1 \\ 
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{多缺陷程序}
+为了进一步评估基于相关统计量的方法在面对多缺陷程序时的效果，本章通过在开源程序flex中一次注入多个缺陷
+来构造多缺陷程序。为了评估方法的有效性，
+\begin{center}
+\tablecaption{Flex多缺陷版本平均定准率}\label{tbl:multi-flex}
+\begin{tabular}{ccccccc}
+\toprule
+错误个数 & RELE & TAR & JAC & OCH & UNION & INTER\\ \hline
+2 & 0.56 & 9 & 8 & 10 & 4 & 1 \\ 
+3 & 15 & 11 & 12 & 13 & 5 & 0 \\ 
+4 & 7 & 8 & 10 & 9 & 2 & 2 \\ 
+5 & 9 & 7 & 5 & 7 & 9 & 6 \\ 
+
+\bottomrule
+\end{tabular}
+\end{center}
 \subsection{适用性讨论}
 
 多错误分类
