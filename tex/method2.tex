@@ -618,48 +618,90 @@ SEMI~\cite{charalampidou2016identifying}分别为其推荐函数抽取重构机�
 确率和召回率之间得到了更好的平衡。在相同容忍度下，GEMS的准确率最高，说明了虽然GEMS生成了所有合法函数
 抽取重构机会且没有进行任何筛选，但绝大多数的重构机会由于被分配到较低的概率，排名较低而被过滤掉了。同
 时，GEMS具有较高的准确率，说明专家鉴定过的正确的函数抽取重构机会大概率会被GEMS分配到一个较高的概率，
-因此排名较高。最后，通过对F值进行计算，可以得到当容忍度分别为1\%、2\%和3\%时，GEMS的F值比第二名分别高了55.8\%、73.1\%和57.7\%，证明了本章方法的有效性。
+因此排名较高。最后，通过对F值进行计算，可以得到当容忍度分别为1\%、2\%和3\%时，GEMS的F值比第二名分别
+高了55.8\%、73.1\%和57.7\%，证明了本章方法的有效性。
 
 \subsection{训练数据集比较}\label{RQ2}
+为了评估训练数据集扩充方法的有效性，分别在由函数抽取重构实例组成的训练集和扩充训练集上进行实验。为了
+避免受训练模型的影响，对比了两组训练数据集在四个模型上的表现，分别是梯度上升决策树（GBDT）、最近邻分
+类（KNN）、逻辑斯特回归模型（LR）和支持向量机（SVM）。模型的选择是由于这些模型在软件工程领域使用广
+泛。需要注意的是，对于无法直接预测类别概率的分类模型KNN和SVM，在训练完成后，需要使用逻辑斯特回归模型
+进行第二阶段的训练，使分类器能够输出类别的概率。对于每个模型，当数据集发生改变时，使用交叉验证重新调
+参并训练。具体细节将在~\ref{RQ3}中讨论。针对每个模型，使用上述的两组训练数据集进行训练。
 
-\begin{figure} 
-  \centering 
-  \begin{minipage}[c]{0.33\textwidth} 
-    \centering 
-    \includegraphics[width=2in]{Precision.pdf} 
-  \end{minipage}% 
-  \begin{minipage}[c]{0.33\textwidth} 
-    \centering 
-    \includegraphics[width=2in]{Recall.pdf} 
-  \end{minipage} 
-  \begin{minipage}[c]{0.33\textwidth} 
-    \centering 
-    \includegraphics[width=2in]{F-measure.pdf} 
-  \end{minipage} 
-\caption{示例代码的结构表示}
-\label{block-example}
-\end{figure}
-
-\iffalse
-\begin{figure}[!t]
+\begin{figure}
 \centering
-\subfloat[Precision]{\includegraphics[scale=0.5]{Precision.pdf}%
-\label{fig_first_case}}
-\hfil
-\subfloat[Recall]{\includegraphics[scale=0.5]{Recall.pdf}%
-\label{fig_second_case}}
-\hfil
-\subfloat[F-measure]{\includegraphics[scale=0.5]{F-measure.pdf}%
-\label{fig_third_case}}
-\caption{Accuracy with Different Datasets}
-\label{diff_data}
+\subfigure[准确率]{\label{RQ2:precision}\includegraphics[width=0.49\linewidth]{Precision.pdf}}
+\hfill
+\subfigure[召回率]{\label{RQ3:recall}\includegraphics[width=0.49\linewidth]{Recall.pdf}}
+\caption{训练数据集比较}
+\label{dataset}
 \end{figure}
-\fi
+
+图~\ref{dataset}为两组训练数据集在四个模型上的准确率和召回率。图~\ref{dataset}中斜条纹的柱形代表在扩
+充数据集上的训练结果，没有斜条纹的柱形为在完全真实的数据上的训练结果；通过将容忍度设置为1\%、2\%和
+3\%，得到在不同容忍度下模型的表现，在图~\ref{dataset}中依次用深灰色、灰色和浅灰色来表示。
+
+通过观察图~\ref{dataset}中不同训练数据集的表现，可以得到以下结论：（1）在大部分情况下，使用扩充数据
+集进行训练的模型表现优于使用原数据集训练得到的模型。只有在概率SVM模型中，原数据集的召回率略优于扩充
+数据集，但该模型在扩充数据集上的准确率明显优于原数据集。这样的观察结果可能是因为扩充数据集的规模更
+大，因此在大多数情况下具有更好的表现。（2）在KNN和LR中，充数据集对结果的改进要明显大于SVM和GBDT两个
+模型。当使用原训练数据集时，LR和KNN的性能较差，可能是由于原数据集规模较小，由于数据不够多导致这两个
+模型容易发生过拟合；而SVM由于最大间隔分类的原因，相比较LR和KNN不容易过拟拟合；类似的，GBDT为基于决策
+树的融合模型，因此在小规模数据集上也能有较好的表现。
+
 \subsection{梯度上升决策树和其它模型的比较}\label{RQ3}
 
+\begin{figure}
+\centering
+\subfigure[准确率]{\label{RQ3:precision}\includegraphics[width=0.49\linewidth]{topk_Precision.pdf}}
+\hfill
+\subfigure[召回率]{\label{RQ3:recall}\includegraphics[width=0.49\linewidth]{topk_Recall.pdf}}
+\caption{不同模型的准确率和召回率，横坐标表示推荐Top-$K$函数抽取重构机会}
+\label{models1}
+\end{figure}
+
+为了评估梯度上升决策树模型在推荐函数抽取重构机会任务上的有效性，本节通过在不同特征组合上的表现来对以
+下这四种模型进行对比。需要注意的是，虽然GEMS最终目的是为每个函数抽取重构机会预测其为正样本的概率，然
+而两组训练数据集中都只包括正样本和负样本，因此对于部分无法直接预测类别概率的分类模型，还需要使用逻辑
+斯特回归模型来做关于概率的训练，使分类器能够输出类别的概率。
+
+具来说，上述的四个模型中，只有梯度上升决策树和逻辑斯特回归模型可以直接预测给定样本为正例的概率，而最
+近邻和支持向量机为分类模型，无法直接预测样本类别的概率。为了让分类器输出概率，在实验中使用逻辑斯特回
+归，通过最大似然来拟合样本为正例的概率（Platt's scaling）。以概率SVM为例，传统的SVM针对给定测试样
+本，根据训练好的参数计算出一个数值$y$，然后根据该数值是否大于0来预测该样本是否为正样本；概率SVM则以
+第一阶段的输出$y$作为输入，样本的类别作为标签，通过逻辑斯特回归模型再训练，得到在输出为$y$时样本为正
+例的概率。
+
+\begin{figure}
+\centering
+\includegraphics[width=0.68\linewidth]{topk_F-measure.pdf}
+\caption{不同模型的F值，横坐标表示推荐Top-$K$函数抽取重构机会}
+\label{models2}
+\end{figure}
+
+图~\ref{models1}和图~\ref{models2}为当固定容忍度（1\%）和训练数据集（扩充数据集）时，GBDT、KNN、LR和
+SVM四个模型的表现。其中红色代表GBDT，蓝色代表KNN，紫色代表LR，绿色代表SVM。横坐标为模型预测阶段，推
+荐Top-$K$个函数抽取重构机会。从图~\ref{RQ3:recall}中可以看出，在大多数情况下GBDT的召回率略高于其它模
+型；通过观察图~\ref{RQ3:precision}可以发现，GBDT的准确率相比较其它模型有很大优势，尤其推荐的函数抽取
+重构机会较少时，GBDT的准确率明显高于其它模型。较高的准确率说明当推荐同样个数的函数抽取重构机会时，
+GBDT模型推荐的模型更有可能被用户采纳，因此效率更高。
+
+除此以外，通过观察图~\ref{models1}可以发现，当提高推荐的函数抽取重构机会数量时，召回率一直在上升，而
+准确率则刚开始上升，达到峰值后迅速下降；最后当为每个函数推荐超过50个函数抽取重构机会时，召回率超过
+92\%，而此时平均准确率降至0.05\%。图~\ref{models2}则更明显的反应了这一趋势，随着推荐的函数抽取重构机
+会数量$K$的增加，F值先增长，大约当$K=5$时，四个模型的F值均达到峰值，然后随着$K$的增加，F值迅速降低。
+基于以上观察，在实际使用GEMS的过程中，建议用户只看排名最高的5个函数抽取重构机会。
+
 \subsection{针对长函数的实验结果}\label{RQ4}
-artificially created long methods for JUnit and JHotDraw, by merging methods that were invoked
-inside others (for more details see [39])
+由于函数抽取重构的目的之一是将长函数分解为短函数，因此本节针对实验数据集中的长函数进行对比实验。根据
+之前的研究，长函数被定义为包括超过30行代码的函数~\cite{charalampidou2016identifying}，表
+~\ref{benchmark}中的实验对象一共包含15个长函数，涵盖了26个函数抽取重构机会。本节将GEMS与三种当前流行
+的函数抽取重构推荐工具进行对比，评估GEMS处理长函数时的有效性。按照~\ref{}中的参数设置方式，GEMS、
+JExtract、SEMI和JDeodorant分别生成了1052、876、228和28个函数抽取重构机会。与之前的研究相同，为每个函
+数最多保留排名最高的5个重构机会。表~\ref{long_methods}为在长函数上根据不同的容忍度统计得到的准确率、
+召回率和F值。同样，黑体数值表示明显优于其它数值，而同等条件下的黑体数值之间没有明显的区别（相差0.5\%
+以内）。
 
 \begin{table}[!t]
   \scriptsize
@@ -692,23 +734,101 @@ inside others (for more details see [39])
   \end{tabular}
   \end{table}
   
-由于方法的最终目的是为给定函数生成候选重构序列，并按序推荐给使用者。然而，在挖掘开源软件仓库时，能够
-得到的信息只有是否进行函数抽取重构，而没有相关的排序。因此，本文使用融合模型，利用最大似然的方法估算
-候选函数抽取重构机会为正例的概率。
+通过观察表~\ref{long_methods}可以得到，在为长函数推荐函数抽取重构机会时，4个工具的结构均不如表
+~\ref{accuracy}中的结果，说明了当面对长函数时，准确地推荐函数抽取重构机会存在一定的难度。不难发现，
+当容忍度为1\%和2\%时，SEMI有最好的表现；当容忍度为2\%和3\%时，GEMS的表现最好。与表~\ref{accuracy}的
+表现一样，JDeodorant由于其保守的函数抽取重构机会生成策略，准确率比JExtract高，同时JDeodorant的召回率
+仍然是所有工具中最低的。当容忍度为1\%时，虽然GEMS的表现仍优于JExtract和JDeodorant，但其表现仍然不够
+理想。然而，通过对实验数据进行分析，发现SEMI和GEMS对于长函数的表现差异，原因并不在于函数的规模，而在
+于函数中存在的应该被抽取的函数片段较多。关于这个问题将在下一节中具体讨论。
 
-Platt's scaling
 \section{讨论}\label{discuss}
-\section{系统展示}
-\section{本章小结}
-虽然已经开发完成的Eclipse插件是面向Java语言的，但只需要改变特征向量的生成方式，，本章方法可同样适用
-于其它语言。Hence, our approach learns a model to capture the common characteristics of Extract
-Method refactorings. We also propose two important functionality-related features to learn the
-model: (1) {\em Coupling-related features}: this assesses the extent to which the extracted code is
-performing a unique functionality than the remaining code; and (2) {\em Cohesion-related features:}
-It assesses the extent to which the extracted code is involved in providing a specific
-functionality.
+最后，本节就实验中发现的一些问题进行讨论。
 
-提出了关于函数抽取重构的特征提取算法，该算法为每个训练样本提取两组特征，分别是结构特征和
-功能特征，融合了软件质量的概念和多种与函数抽取重构相关的程序元素；接着阐述了使用的梯度上升决策树和逻
-辑斯特回归融合模型。在预测阶段，阐述了根据给定函数体生成候选函数抽取重构机会的方法以及最后的概率预测
-和排序方法。
+\subsection{特征重要性}
+  \begin{figure}
+  \centering
+  \includegraphics[width=0.49\linewidth]{fs.pdf}
+    \caption{不同特征组合下的模型表现，横坐标表示使用Top-$K$个特征进行训练}
+    \label{features}
+  \end{figure}
+尽管在实验中一共提取了48个特征进行训练，但这些特征的重要性并不完全相等。为了研究特征对实验结果的重要
+性，使用过滤式特征选择（Relief特征选择算法）计算每个特征的相关统计量，然后使用不同的特征组合使用GBDT
+进行训练。图~\ref{features}为使用不同数量的特征进行训练的实验结果，其中红色为召回率，绿色为准确率，
+紫色表示F值。横坐标Top-$K$表示使用重要性最高的$K$个特征进行训练。
+
+通过图~\ref{features}可以发现，当训练特征较少时，模型的表现较差。随着特征的数量逐渐增加，召回率、准
+确率和F值随之增长。例如当特征的数量从5增加到35时，模型的准确率、召回率和F值分别提高了64.4\%、35.5\%
+和55.8\%。然而，当继续增加特征的个数时，模型的表现逐渐降低。转折点大约出现在$K=35$处，因此有理由认为
+并不是所有特征对模型训练都是有益的，48个特征中大约只有35个特征具有预测能力，而其它特征的加入只是引入
+了噪音，可能导致模型效果降低。
+
+表~\ref{important_features}中列出了按照特征重要性由高至提排名最高的20个特征。可以看到，排名较高的大
+多为功能特征；特征``EXTRACTED\_LOCAL''的排名较高，意味着模型认为代码片段中是否含有本地变量的声明对决
+定代码片段是否被抽取有较大影响；大多数与内聚度相关的特征（以``COHESION''结尾）在实验中被认为是比较重
+要的。除此以外，表~\ref{important_features}中的排名说明了部分程序元素，如函数调用
+（``INVOCATION''）、类型（``TYPE''）、包（``PACKAGE''）等比其它元素更重要，验证了本文研究动机中关于
+软件质量度量由于考虑的程序元素较少，因此度量结果存在片面性的问题。
+
+\begin{table}[!t]
+  \scriptsize
+  \renewcommand{\arraystretch}{1.3}
+  \caption{Top-20 Features}
+  \label{important_features}
+  \centering
+  \begin{tabular}{p{0.05cm}cp{0.05cm}c}
+  \toprule Rank &Features &Rank &Features \\ \midrule
+  1& \textbf{INVOCATION\_COHESION}& 11& CON\_VAR\_ACC\\
+  2& LOC\_EXTRACTED\_METHOD& 12& EXTRACTED\_LOCAL\\
+  3& \textbf{TYPEDELE\_COHESION}& 13& CON\_LOC\\
+  4& RATIO\_LOC& 14& EXTRACTED\_VAR\_AC\\
+  5& CON\_PACKAGE& 15& \textbf{PACKAGE\_COHESION}\\
+  6& EXTRACTED\_TYPED\_ELE& 16& CP\_PACKAGE\\
+  7& CP\_VAR\_ACC& 17& CP\_PACKAGE2\\
+  8& EXTRACTED\_PACKAGE& 18& \textbf{VARAC\_COHESION}\\
+  9& \textbf{VARAC\_COHESION2}& 19& EXTRACTED\_IF\\
+  10& CON\_INVOCATION& 20& EXTRACTED\_INVOCATION\\
+  \bottomrule 
+  \end{tabular}
+  \end{table}
+  
+\subsection{多函数抽取重构机会}
+通过观察针对长函数的实验数据，发现~\ref{RQ4}中所使用的长函数大多不止一个函数抽取操作（平均每个函数
+1.9个），而GEMS的原理是预测候选函数抽取重构机会为正例的概率，并根据概率进行排序推荐。因此，不难理解，GEMS为相似的函数抽取重构机会分配相近的概率。同时，由于函数体内存在不止一个应该被抽取的代码片段，导致GEMS在为其中一个相关的函数抽取重构机会分配到高概率的同时，会为与其相似的其它重构机会分配较高的概率，因此导致其它不相似但应该被抽取的代码段的概率排名相对较低，最终导致了模型效率的下降。与GEMS相反，SEMI在推荐阶段将相似的函数抽取重构机会聚为一类，每次只从中选择排名最高的一个函数抽取重构机会进行推荐，从而取得了不错的表现结果。
+
+针对上述问题，为使用者提供了两种策略：（1）建议用户一步只进行一个函数抽取重构，在完成重构后，若使用
+者仍希望继续进行函数抽取，则再次选择该函数，进行下一轮的函数抽取重构推荐，直到使用者放弃重构为止；（2）基于与SEMI类似的思路，可以将相似的函数抽取重构机会放到一组中，对于每组只推荐概率最高的函数抽取重构机会给用户。具体来说，如果两个函数抽取重构机会$a$和$b$满足以下条件，则认为它们较为相似，可以被放到一组：
+\begin{eqnarray}
+  \frac{\lvert{Start_a - Start_b}\rvert + \lvert{End_a - End_b}\rvert}{MAX(LoC_a, LoC_b)}\leq \it Threshold，
+\end{eqnarray}
+其中$Start$和$End$分别表示待抽取代码的起止行号；LOC为待抽取代码的行数，$Threshold$为设定的阈值。
+
+\section{系统展示}
+如图~\ref{system}所示，使用梯度上升决策树的训练结果，开发了基于Eclipse的插件GEMS，为Java用户推荐函数
+抽取重构机会。以图~\ref{system}为例，针对选定的函数$angleToPoint$，GEMS推荐5个排名最高的函数抽取重构
+机会，当用户选定某个重构机会时，可以通过Eclipse自动完成函数抽取重构操作。
+
+  \begin{figure}
+  \centering
+  \includegraphics[width=0.88\linewidth]{system.png}
+    \caption{系统展示}
+    \label{system}
+  \end{figure}
+
+\section{本章小结}
+本章提出了基于梯度上升决策树的函数抽取重构机会推荐方法，并基于该方法开发了Eclipse插件GEMS。在训练阶
+段，该方法首先每个训练样本提取两组特征，分别是结构特征和功能特征，融合了复杂度、内聚度和耦合度三个重
+要的软件质量因素，以及多种与函数抽取重构相关的程序元素，并利用梯度上升决策树模型训练。在推荐阶段，针
+对给定函数，首先使用基于代码块的方法生成所有合法的函数抽取重构机会，然后使用训练好的模型为每个函数抽
+取重构机会分配一个概率，并根据概率由高至低推荐给用户。
+
+通过在开源软件上进行实验，发现尽管GEMS生成了大量的函数抽取重构机会，但使用训练好的模型可以为好的函数
+抽取重构机会分配较高的概率，使其排名较高，从而在实验中具有较好的表现。除此以外，受受变异测试启发，本
+文提出了使用函数内联重构来扩充训练数据集，并通过实验证明该训练集在大多数情况下能够取得比原训练数据集
+更好的结果。值得注意的是，本文在构造扩充数据集时，谨慎地选择了具有良好设计模式的开源程序，并且只内联
+被调用一次的函数作为待抽取片段，认为通过将该代码片段重新抽取出来能够提高程序的易读性、可维护性和可靠
+性，与函数抽取的主要目的相一致。
+ 
+最后在不同模型上的实验结果证明了梯度上升决策树在推荐函数抽取重构机会时的有效性，尤其当使用原数据集
+时，由于其融合模型的性质使得在小规模数据集上，该模型相比较其它三种模型有较为明显的优势。通过分析特征
+重要性，本文发现了对函数抽取重构较为重要的因素，对了解函数抽取重构的意图有一定程度的帮助。
