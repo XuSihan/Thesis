@@ -274,16 +274,10 @@ Silva等人的JExtract~\cite{silva:ICPC14,silva:CoRR15}，该方法与本章方�
   重构，则函数$m$和$c$组成一个函数抽取重构实例$r$，记为$r=(m,c)$。
 \end{Definition}
 
-本文通过比较开源软件仓库中的相邻版本得到的真实的函数抽取重构实例集$\mathcal R$，构成训练样本集中的正
-例；样本集中的负例来自于对未被函数抽取重构的函数随机生成并通过合法性筛选的重构机会。由于给定任意函数
-的函数抽取重构机会的数量往往较大（如本文实验中为5个开源软件系统生成了7628个重构机会），然而其中应该
-被实施的函数抽取重构实例通常较少（如实验中只有155个函数抽取重构实例），因此本文假设随机生成的重构机
-会大概率不应该被实施，因此将它们作为负样本。
-
-给定训练样本集$\mathcal D$，其中第$i$个样本记为$\mathcal D^{(i)}=(x^{(i)},y^{(i)})$，$x^{(i)}$表示样
-本数据，为一个函数-重构机会对，即$x^{(i)}=p^{(i)}=(m^{(i)},c^{(i)})$；$y^{(i)}$表示样本的标签，即该函数-
-机会对是否为函数抽取重构实例。因此样本标签$y^{(i)}$
-可以表示为：
+本文通过比较开源软件仓库中的相邻版本得到的真实的函数抽取重构实例集$\mathcal R$。给定训练样本集
+$\mathcal D$，其中第$i$个样本记为$\mathcal D^{(i)}=(x^{(i)},y^{(i)})$，$x^{(i)}$表示样本数据，为一个
+函数-重构机会对，即$x^{(i)}=p^{(i)}=(m^{(i)},c^{(i)})$；$y^{(i)}$表示样本的标签，即该函数-机会对是否
+为函数抽取重构实例。因此样本标签$y^{(i)}$可以表示为：
 \begin{equation}
    y^{(i)} = 
        \begin{cases}
@@ -399,9 +393,7 @@ $cp$也为1（第14行）。通过这种方式，提取到可能代表待抽取�
 $ch$后，将其作为功能特征向量返回。
 
 \subsection{梯度上升决策树模型}
-由于方法的最终目的是为给定函数生成候选重构序列，并按序推荐给使用者。然而，在挖掘开源软件仓库时，能够
-得到的信息只有是否进行函数抽取重构，而没有相关的排序。因此，本文使用融合模型，利用最大似然的方法估算
-候选函数抽取重构机会为正例的概率。
+
 
 \subsection{函数抽取重构机会推荐}
 在推荐阶段，对于给定函数，首先生成所有可能的函数抽取重构机会，然后通过基于规则的方法过滤掉可能改变程
@@ -409,28 +401,33 @@ $ch$后，将其作为功能特征向量返回。
 率由高至低推荐给用户。
 
 \subsubsection{4.3.4.1 基于代码块的函数抽取重构机会生成}
-本文的函数抽取对象为连续语句构成的代码片段，为了在不破坏程序语法的前提下，生成所有可能的函数抽取重构
-机会，使用基于代码块的方法~\cite{silva:ICPC14}生成函数抽取重构机会。
+本文的函数抽取对象为连续语句构成的代码片段，因此给定函数，需要在不破坏程序语法的前提下，生成所有可能
+的函数抽取重构机会，使用基于代码块的方法~\cite{silva:ICPC14}生成函数抽取重构机会。
 \begin{Definition}\label{block}
   代码块。代码块由程序中顺序执行的语句$S$组成，记为$B=\{S_1,S_2,...,S_n\}$，其中$n$为代码中语句的数
   量。
 \end{Definition}
 
-\begin{figure}
-\centering
-\subfigure[示例代码]{\label{fig:block}\includegraphics[width=0.59\linewidth]{block.pdf}}
-\hfill
-\subfigure[示例代码的代码块结构]{\label{fig:block_structure}\includegraphics[width=0.39\linewidth]{block_structure.pdf}}
-\caption{基于代码块的结构表示}
+\begin{figure} 
+  \centering 
+  \begin{minipage}[c]{0.5\textwidth} 
+    \centering 
+    \includegraphics[width=3.5in]{block.pdf} 
+  \end{minipage}% 
+  \begin{minipage}[c]{0.5\textwidth} 
+    \centering 
+    \includegraphics[width=2in]{block_structure.pdf} 
+  \end{minipage} 
+\caption{示例代码的结构表示}
 \label{block-example}
 \end{figure}
 
-图~\ref{block-example}为示例代码及其基于代码块的结构表示，其中图~\ref{fig:block_structure}中的$S_j$
-指代的是图~\ref{fig:block}中的第$j$行代码。根据定义~\ref{block}，图~\ref{fig:block}中一共存在4个代码
-块，分别是$B_1$、$B_2$、$B_3$和$B_4$。基于代码块的函数抽取重构机会生成，通过遍历所有代码块中由连续语
-句组成的代码片段，构成函数抽取重构机会。以代码块$B_1$为例，$B_1$从函数$toString()$的入口开始，依次执
-行语句$S_2$、$for$循环语句$S_{3-15}$和语句$S_{16}$，即$B_1=\{S_2,S_{3-15},S_{16}\}$。由于$B_1$中一共
-有3个语句，因此可以依次生成长度为1、2、3的代码块。最后可以得到，根据代码块$B_1$生成的连续代码片段有
+图~\ref{block-example}为示例代码及其基于代码块的结构表示，其中右图中的$S_j$指代的是左图中的第$j$行代
+码。根据定义~\ref{block}，示例代码中一共存在4个代码块，分别是$B_1$、$B_2$、$B_3$和$B_4$。基于代码块
+的函数抽取重构机会生成，通过遍历所有代码块中由连续语句组成的代码片段，构成函数抽取重构机会。以代码块
+$B_1$为例，$B_1$从函数$toString()$的入口开始，依次执行语句$S_2$、$for$循环语句$S_{3-15}$和语句
+$S_{16}$，即$B_1=\{S_2,S_{3-15},S_{16}\}$。由于$B_1$中一共有3个语句，因此可以依次生成长度为1、2、3的
+代码块。最后可以得到，根据代码块$B_1$生成的连续代码片段有
 $cf(B_1)=\{\{S_2\},\{S_{3-15}\},\{S_{16}\},\{S_2,S_{3-15}\},\{S_{3-15},S_{16}\},\{S_2,S_{3-15},S_{16}\}\}$。
 通过同样的方式，遍历4个代码块后一共得到27个由连续语句组成的代码块作为潜在的函数抽取重构机会。需要注
 意的是，对于代码块$B$来说，其中的一个代码结构（如分支、循环等）被视为一个整体，因此为一条语句。如代
@@ -455,39 +452,42 @@ $cf(B_1)=\{\{S_2\},\{S_{3-15}\},\{S_{16}\},\{S_2,S_{3-15}\},\{S_{3-15},S_{16}\},
 会再进行选择，因此在使用中通常只推荐排名最高的若干个函数抽取重构机会。
 
 \section{实验设计}
-本节评估了基于梯度上升决策树的函数抽取重构机会推荐方法的有效性，通过在开源软件系统上进行实验，对比评
-估了本文方法与其它三种当前流行的函数抽取重构机会推荐方法，证明了本文的有效性。除此以外，还设计了关于
-模型选择和特征重要性的实验，并对实验结果进行了讨论和分析。
+本节评估了基于梯度上升决策树的函数抽取重构机会推荐方法（GEMS）的有效性，通过在5个开源软件上进行
+实验，对比评估了本文方法与其它3种当前流行的函数抽取重构机会推荐方法，证明了本文的有效性。除此以外，
+还设计了关于模型选择和特征重要性的实验，并对实验结果进行了讨论和分析。
 
 \subsection{对比方法与实验对象}
-为了评估本章方法（GEMS）的有效性，与3个当前流行的函数抽取重构机会推荐工具进行对比实验，这三个工具分
-别是：
+为了评估本章方法的有效性，与3个当前流行的函数抽取重构机会推荐工具进行对比实验，这三个工具分别是：
 \begin{itemize}
   \item JExtract~\cite{silva:ICPC14,silva:CoRR15}，该工具同样也是一个``生成-排序''系统，与本章方法的
 区别是JExtract使用自定义的函数为每个函数抽取重构机会打分，而GEMS通过构建概率模型学习如何进行函数抽取
 重构。
   \item SEMI~\cite{charalampidou2016identifying}，该方法通过识别连续的相关的代码语句作为候选函数抽取
 机会，并按照软件质量度量LCOM$_2$的高低进行排序并推荐。
-  \item JDeodorant~\cite{charalampidou2016identifying}，该工具通过计算程序切片得到所有可能改变变量的
+  \item JDeodorant~\cite{tsantalis2011identification}，该工具通过计算程序切片得到所有可能改变变量的
   值或对象的状态的可执行切片作为候选函数抽取重构机会进行推荐。
 \end{itemize}
 
-为了评估本章方法的有效性，在5个开源软件系统上进行实验，分别是JHotDraw、Junit、MyWebMarket、
-SelfPlanner和WikiDev。其中JHotDraw、Junit和MyWebMarket为文献~\cite{silva:ICPC14}中用来证明JExtract有
-效性的实验对象，SelfPlanner和WikiDev与文献~\cite{tsantalis2011identification}中用来证明JDeodorant有
-效性的实验对象相同，而文献~\cite{charalampidou2016identifying}使用了这5个软件系统来评估SEMI的有效
-性。表~\ref{benchmark}为这5个软件系统的统计信息。
+本章的实验对象为5个开源软件，分别是JHotDraw、Junit、MyWebMarket、SelfPlanner和WikiDev。其中
+JHotDraw、Junit和MyWebMarket为文献~\cite{silva:ICPC14}中用来证明JExtract有效性的实验对象，
+SelfPlanner和WikiDev与文献~\cite{tsantalis2011identification}中用来证明JDeodorant有效性的实验对象相
+同，而文献~\cite{charalampidou2016identifying}使用了这5个软件系统来评估SEMI的有效性。这5个表
+~\ref{benchmark}为这5个软件系统的统计信息。可以看到，在这5个开源软件中的共有130个函数存在函数抽取重
+构操作，而实验的目标是为这130个函数中准确识别出155个函数抽取重构机会。需要注意的是，用来评估方法有效
+性的这155个函数抽取重构均来自于专家或者软件开发者的意见，因此本章实验中将其作为基准集来验证方法有效
+性。
 
 \begin{table}[!t]
+  \scriptsize
   \renewcommand{\arraystretch}{1.3}
   % if using array.sty, it might be a good idea to tweak the value of
   % \extrarowheight as needed to properly center the text within the cells
-  \caption{Statistics of Subject Systems}
+  \caption{实验对象统计信息}
   \label{benchmark}
   \centering
   \begin{tabular}{ccc}
   \toprule 
-  Projects &Methods &Refactor.\\ \midrule
+  程序名 &函数数量 &函数抽取重构数量.\\ \midrule
   JHotDraw &56 &56 \\ 
   Junit &25 &25 \\ 
   MyWebMarket &23 &35 \\ 
@@ -498,29 +498,84 @@ SelfPlanner和WikiDev。其中JHotDraw、Junit和MyWebMarket为文献~\cite{silv
   \end{tabular}
   \end{table}
 
-\subsection{实验方法}
+\subsection{训练数据收集}
+为了训练函数抽取重构的概率模型，首先需要收集正负样本作为训练数据集。本文收集了以下两组训练数据集：
 
-通过对没有被重构的函数随机抽取代码片段，得到负样本集。
+\textbf{函数抽取重构实例。}实验中的真实数据集来自于GitHub上广受欢迎的开源软件系统，利用
+RefactoringMiner工具~\cite{tsantalis2013multidimensional}比较两个相邻的版本，收集在原函数中存在的、
+在后一个版本中被抽取出来作为新函数的代码片段，得到可能的函数抽取重构实例。由于RefactoringMiner不能完
+全正确，因此通过人工检查过滤掉程序语义不完全一样的样本，最后得到267个真实的函数抽取重构实例作为训练
+样本集中的正例。训练样本集中的负例来自于对未被函数抽取重构的函数随机生成并通过合法性筛选的重构机会。
+由于给定任意函数的函数抽取重构机会的数量往往较大（如本文实验中为5个开源软件生成了7628个重构机会），
+然而其中应该被实施的函数抽取重构实例通常较少（如实验中只有155个函数抽取重构实例），因此本文假设随机
+生成的重构机会大概率不应该被实施，因此将它们作为负样本。
 
-为在原函数中存在的、在后一个版本中被抽取出来作为新函数的代码片段
+\textbf{数据集扩充方法。} 由于收集真实的函数抽取重构实例需要进行人工筛查，其时间和人力的成本较高，因
+此收集到的真实训练数据集规模较小。为了扩大训练数据集规模，在实验中内联只被调用过一次的函数，将其与调
+用函数合并构成一个函数抽取重构样本。基于变异测试的思想，该方法假设被合并的代码片段应该重新被抽取出
+来。通过对软件系统设计良好的开源软件以上述方法扩充训练数据集，最后一共得到5598个正样本，并生成同等规
+模的负样本，构成扩充训练样本集。
+  
+在接下来的实验中，分别利用这两个训练数据集单独进行实验，并对实验结果进行比较分析。为了确保实验的可重
+复性，所有的训练数据集、实验数据集以及GEMS工具和源代码均已放到网站上。需要注意的是，由于GEMS和其它三
+种函数抽取重构推荐工具都只针对待重构函数进行分析，输入数据不包括其它函数或文件，因次虽然代码复用是函
+数抽取重构的原因之一，但这些方法均不考虑这种原因。可通过代码克隆检测来寻找重复的代码，并进行函数抽取
+重构。
 
-给定两个相邻的版本，$P$表示其中较早的一个版本，$P'$表示另一个版本。假定版本$P$中存在一个函数$M$，函
-数中的一个代码片段$F$在版本$P'$中被抽取出来组成一个新的函数被原函数$M$调用，则函数$M$和代码片段$F$组
-成一个重构实例。
-\subsection{评估指标}
+\subsection{评估方法}
+\subsubsection{4.4.3.1 正确性与容忍度}\label{tol}
+给定函数$m$和$m$的一个函数抽取重构机会$p$，若$p$与实验数据集中的函数抽取重构操作完全匹配，则认为该函
+数抽取重构机会是正确的。与之前的研究一样\cite{charalampidou2016identifying}，在实验评估中引入容忍度
+（tolerance）的概念，即在判断函数抽取重构机会是否正确的时候，容忍在一定范围以内的误差。一方面，软件
+重构本身具有一定的主观性，而在待抽取代码段边界上的代码定位可能较为模糊，不是很明确地属于某个子功能；
+另一方面，对于规模较大的函数，即使是在一定误差范围以内的函数抽取重构机会推荐也能够提高对程序的理解和
+维护效率。具体来说，实验中分别使用$1\%$, $2\%$ and $3\%$作为容忍度$t$的阈值。以LOC为100的函数为例，
+$t=1\%$意味着将误差在1行以内的函数抽取重构机会在评估时认为是正确的。
+
+\subsubsection{4.4.3.2 评估指标}
+在评估方法有效性时，按照之前的研究，使用三个评估指标来评估方法的性能和效率，分别是精确率、召回率和F
+值。其中，精确率指的是所有被推荐的函数抽取重构机会中正确函数抽取重构机会所占的百分比；召回率指的是被
+寻回的函数抽取重构机会占总数的百分比；$F-measure$是一个对精确率和召回率的加权调和平均：
+\begin{eqnarray}
+  F-measure = \frac{2 \times precision \times recall}{precision + recall} \times 100\%，
+\end{eqnarray}
+其中，$Precision$为精确率，$Recall$为召回率。最后，根据容忍度$1\%$, $2\%$ and $3\%$分别计算上述三个指标在实验数据集上的结果，比较分析包括本章方法在内的4个函数抽取重构机会推荐工具。
+
+\subsubsection{4.4.3.3 参数设置}
+为了有效评估方法的性能，将本章方法与其它三种工具进行对比实验。与最终部署到Eclipse上的插件GEMS相同，
+在第~\ref{RQ1}节中呈现的是使用的是梯度上升决策树在扩展训练数据集上训练的模型进行推荐的结果（用
+$GEMS^{GB}$表示）。为了实验的公平性，JExtract根据开发者的建议，将推荐的函数抽取重构机会的最小LOC设置为
+2；SEMI和JDeodorant同样根据文献中推荐的方法进行设置。
 
 \section{实验结果与分析}
+本节首先比较了基于梯度上升决策树的函数抽取重构机会推荐方法与其它主流方法的准确性（第~\ref{RQ1}节），
+然后在第~\ref{RQ2}节中比较了使用两组训练数据集进行训练所学习到的模型的性能，在第~\ref{RQ3}节中通过实
+验比较了训练所使用的分类模型对实验结果的影响，最后通过在长函数上的实验分析并讨论了本文方法的优点和不
+足（第~\ref{RQ4}节）。
+
+\subsection{函数抽取重构机会推荐工具比较}\label{RQ1}
+在四种工具中，GEMS和JExtract为``生成-排序''工具，因此给定130个待重构函数，GEMS和JExtract首先生成尽可
+能多的函数抽取重构机会，总数分别是9111和7612，然后依赖排序方法对每个函数所生成的函数抽取重构机会进行
+排序，推荐排名最高的5个候选机会。需要注意的是，由于JExtract对抽取的代码规模有所限制，而GEMS生成了所
+有合法的函数抽取重构机会，因此前者的候选重构机会比后者要少。与它们相比，JDeodorant和SEMI的函数抽取重
+构机会生成策略较为保守，分别生成了总数为737和137个函数抽取重构机会。尽管GEMS和JExtract生成了大量的候
+选函数抽取重构机会，但使用者未必会看完整个列表再进行重构。因此，对于实验数据集中的每个函数，GEMS、
+JExtract~\cite{silva:ICPC14}、JDeodorant~\cite{tsantalis2011identification}和
+SEMI~\cite{charalampidou2016identifying}分别为其推荐函数抽取重构机会，并为每种工具按照排名由高至低最
+多选择5个候选重构机会进行评估和比较，针对给定的130个函数，分别推荐650、650、638和137个函数抽取重构机
+会。
 
 \begin{table}[!t]
+  \scriptsize
   \renewcommand{\arraystretch}{1.3}
   % if using array.sty, it might be a good idea to tweak the value of
   % \extrarowheight as needed to properly center the text within the cells
-  \caption{Accuracy of Different Approaches}
+  \caption{函数抽取重构工具性能比较}
   \label{accuracy}
   \centering
   \begin{tabular}{cc|ccc}
   \toprule
-   Tools &Tolerance &Precision &Recall &F-measure\\ 
+   工具名称 &容忍度 &准确率 &召回率 &F值\\ 
   \hline
   \multirow{4}{*}{GEMS$^{GB}$}&$1\%$ &\bf{22.5\%} &\bf{54.2\%} &\bf{31.8\%} \\ 
   &$2\%$ &\bf{28.5\%} &\bf{59.8\%} &\bf{38.6\%} \\ 
@@ -541,7 +596,73 @@ SelfPlanner和WikiDev。其中JHotDraw、Junit和MyWebMarket为文献~\cite{silv
   \end{tabular}
   \end{table}
 
+表~\ref{accuracy}中展示了四种函数抽取重构工具在实验数据集上的准确率、召回率和F值，使用了第~\ref{tol}
+节中所阐述的容忍度。其中，黑体表示具有明显优势的数值，而同等条件下两个加粗数值之间没有明显的区别
+（+/-0.5\%以内）。例如当容忍度为2\%时，GEMS和JExtract的召回率没有明显的区别。从表~\ref{accuracy}中可
+以看到，根据容忍度的不同，GEMS的平均召回率在54.2\%\textasciitilde62.6\%之间，而平均准确率在
+22.5\%\textasciitilde 34.3\%之间。需要声明的是，表~\ref{accuracy}中的准确率普遍不高
+（12.6\%\textasciitilde34/3\%），这是由于准确率的计算方式导致的。实验数据集中共有130个函数，涵盖了
+155个经专家鉴定的函数抽取重构操作，平均每个函数只有$1.2$个正确的函数抽取重构机会，而在实验中通过为每
+个函数推荐最多5个函数抽取重构机会来评估方法的有效性，因此在不考虑容忍度的情况下，在最好情况下平均准
+确率也只有23.8\%。事实上，GEMS总共为这130个函数生成了9111个合法函数抽取重构机会，并为每个机会分配一
+个概率；通过为每个函数保留概率最高的5个函数抽取重构机会，GEMS能够成功找到155个函数抽取重构操作中的
+81\textasciitilde97个，并正确推荐了146\textasciitilde223个函数抽取重构机会。
+
+通过观察表~\ref{accuracy}可以发现，当容忍度固定时，GEMS在准确率、召回率和F值三个指标上均优于其它三个
+工具。虽然JExtract的召回率与GEMS相差的不多，尤其是当容忍度为2\%时，但由于JExtract的准确率几乎是所有
+工具中最低的，这表示虽然JExtract在很大概率上可以成功找到函数抽取重构机会，但由于其推荐的准确率不高，
+导致排名较高的5个函数抽取重构机会中正确的重构机会较少，导致整体的F值较低。与JExtract相反，JDeodorant
+的准确率较高，而召回率偏低。通过观察发现，由于JDeodorant采用程序切片的方法为每个函数计算关于特定变量
+或状态的切片，因此JDeodorant生成的函数抽取重构机会较少，准确率高；然而同时也由于其过于保守的重构机会
+生成策略，导致大量正确的函数抽取重构机会被遗漏，因此召回率最低。与JExtract和JDeodorant相比，SEMI在准
+确率和召回率之间得到了更好的平衡。在相同容忍度下，GEMS的准确率最高，说明了虽然GEMS生成了所有合法函数
+抽取重构机会且没有进行任何筛选，但绝大多数的重构机会由于被分配到较低的概率，排名较低而被过滤掉了。同
+时，GEMS具有较高的准确率，说明专家鉴定过的正确的函数抽取重构机会大概率会被GEMS分配到一个较高的概率，
+因此排名较高。最后，通过对F值进行计算，可以得到当容忍度分别为1\%、2\%和3\%时，GEMS的F值比第二名分别高了55.8\%、73.1\%和57.7\%，证明了本章方法的有效性。
+
+\subsection{训练数据集比较}\label{RQ2}
+
+\begin{figure} 
+  \centering 
+  \begin{minipage}[c]{0.33\textwidth} 
+    \centering 
+    \includegraphics[width=2in]{Precision.pdf} 
+  \end{minipage}% 
+  \begin{minipage}[c]{0.33\textwidth} 
+    \centering 
+    \includegraphics[width=2in]{Recall.pdf} 
+  \end{minipage} 
+  \begin{minipage}[c]{0.33\textwidth} 
+    \centering 
+    \includegraphics[width=2in]{F-measure.pdf} 
+  \end{minipage} 
+\caption{示例代码的结构表示}
+\label{block-example}
+\end{figure}
+
+\iffalse
+\begin{figure}[!t]
+\centering
+\subfloat[Precision]{\includegraphics[scale=0.5]{Precision.pdf}%
+\label{fig_first_case}}
+\hfil
+\subfloat[Recall]{\includegraphics[scale=0.5]{Recall.pdf}%
+\label{fig_second_case}}
+\hfil
+\subfloat[F-measure]{\includegraphics[scale=0.5]{F-measure.pdf}%
+\label{fig_third_case}}
+\caption{Accuracy with Different Datasets}
+\label{diff_data}
+\end{figure}
+\fi
+\subsection{梯度上升决策树和其它模型的比较}\label{RQ3}
+
+\subsection{针对长函数的实验结果}\label{RQ4}
+artificially created long methods for JUnit and JHotDraw, by merging methods that were invoked
+inside others (for more details see [39])
+
 \begin{table}[!t]
+  \scriptsize
   \renewcommand{\arraystretch}{1.3}
   % if using array.sty, it might be a good idea to tweak the value of
   % \extrarowheight as needed to properly center the text within the cells
@@ -570,6 +691,10 @@ SelfPlanner和WikiDev。其中JHotDraw、Junit和MyWebMarket为文献~\cite{silv
   \bottomrule
   \end{tabular}
   \end{table}
+  
+由于方法的最终目的是为给定函数生成候选重构序列，并按序推荐给使用者。然而，在挖掘开源软件仓库时，能够
+得到的信息只有是否进行函数抽取重构，而没有相关的排序。因此，本文使用融合模型，利用最大似然的方法估算
+候选函数抽取重构机会为正例的概率。
 
 Platt's scaling
 \section{讨论}\label{discuss}
