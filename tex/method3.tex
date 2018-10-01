@@ -1,11 +1,218 @@
 % !TeX root = ../main.tex
 % -*- coding: utf-8 -*-
 
-\chapter{基于层次注意力网络的函数名推荐}
-\label{chpt:method}
-\section{引言}
-\section{问题描述}
+\chapter{基于层次注意力的函数名推荐}
+为了提高代码的易读性和易理解性，本章针对常见的软件重构操作--函数重命名重构进行研究。本章首先阐述了函
+数名对软件系统的可维护性的重要性，然后介绍了关于函数重命名的相关研究现状。针对函数内在的层次结构，本
+章提出了基于层次注意力网络模型的函数名推荐方法，该方法利用层次注意力网络，学习对函数中的源代码的分布
+式表示，并利用该分布式表示预测函数名。在推荐阶段，通过集束搜索生成候选函数名序列，并按序推荐函数名，
+从而帮助软件维护人员提高软件系统的可维护性。
+
+\section{研究背景与研究动机}
+随着软件系统规模越来越大，软件维护的难度也越来越高。一方面，随着需求的不断增加，软件规模不断增大，导
+致软件系统的复杂度越来越高，可维护性降低。另一方面，软件维护通常建立在对软件系统理解的基础上，而合作
+的开发模式和人员流动性导致软件维护人员经常需要面对大量陌生的代码，如何快速理解并掌握系统源代码成为维
+护人员经常需要面对的问题。
+
+易读性是软件可维护性的重要组成方面，也是评估软件系统质量的关键因素~\cite{buse2008metric}。研究者认
+为，在软件维护过程中，最耗费时间和精力成本的是阅读代码的过程~\cite{rugaber2000use}。研究发现，大多数
+软件维护人员花费在阅读和理解代码上的时间比真正花费在写代码上的时间更多~\cite{ko2006exploratory}。正
+因为此，部分研究者提出在软件维护过程中，需要为阅读和理解代码预留出特定的时间，将代码易读性作为代码检
+查的重要指标之一。
+
+为了适应快速迭代的软件需求，当面对大规模软件系统时，软件维护人员通常不需要完全理解和掌握代码的所有细
+节，才能对软件系统进行维护。在实践中较为常见的做法是通过阅读函数的标题来理解函数的大致功能，通过多次
+跳转快速定位到与当前任务相关的代码位置~\cite{starke2009searching}。只有当通过函数标题无法满足对函数
+理解的需求时，才会仔细阅读具体的代码，获得更多的信息。
+
+准确的函数名可以提高代码阅读的速度，从而提高软件维护的效率。在软件维护过程中，维护人员通过快速阅读代
+码来理解程序的功能和行为。根据SRP原则~\cite{martin2003agile}（``Single Responsibility
+Principle''），每个函数执行一个单独的功能，因此函数通常被认为是程序行为的最小单元
+~\cite{host2009debugging}。准确的函数名能够总结函数的功能，因此通过阅读函数名，软件维护人员可以快
+速理解函数的整体行为；相反，不准确的函数名通常导致理解和维护软件系统的难度提高
+~\cite{arnaoudova2016linguistic}，甚至在某些情况下可能导致代码缺陷~\cite{abebe2012can}。
+
+函数重命名是完善性软件维护的重要手段。随着版本的不断更迭，新功能不断被添加，原本合适的函数名也可能变
+得不再合适。此时，为了提高程序的易读性，防止由于函数名造成误导，需要进行函数重命名（Rename
+Method），在不改变程序行为的前提下，通过更改函数名，提高软件系统的易读性和可维护性。Murphy等人
+~\cite{Murphy-Hill:ICSE09}通过对13000位使用Eclipse的Java开发者进行调研，发现函数重命名是最常用的软件
+重构类型之一。
+
+尽管函数名对软件系统的易读性和可维护性具有较大的影响，但寻找具有总结能力且易读性强的函数名十分困难
+~\cite{allamanis2015suggesting}。寻找好的函数名通常需要在理解函数的基础上，高度抽象整个函数的功能。
+近年来，随着自然语言处理领域的不断发展，部分研究者将程序语言作为用来传递指令的一种特殊语言，将代码作
+为一种特殊的文本进行学习。例如，Oda等人~\cite{oda2015learning}使用机器翻译技术将Python代码翻译成伪代
+码，从而生成易读性更强的代码；Iyer等人~\cite{iyer2016summarizing}设计了一个将代码翻译成文本的神经注
+意力模型，将长短期记忆神经网络（LSTM）和注意力机制应用于源代码和自然语言之间的翻译；
+Movshovitz-Attias和Cohen~\cite{movshovitz2013natural}使用$n$-gram模型和主题模型从代码中生成评论。
+
+尽管编程语言与自然语言之间存在一定的相似性，但其与自然语言在结构上有很大的区别。虽然自然语言的语法也
+存在一定的结构性，但与程序语言相比，自然语言更加序列化和平铺直叙。与自然语言不同，程序语言中蕴含着丰
+富的结构信息，直接将代码当做普通文本进行学习，得到的上下文信息不够准确，因此导致模型效果欠佳。
+
+为了充分利用代码中的上下文信息，部分研究者~\cite{allamanis2015suggesting, haiduc2010supporting}通过
+程序分析，从源代码中提取出一组与程序语义相关的特征，如Cyclomatic复杂度、变量类型和返回类型等，来表示
+代码段。尽管这样的方法可以在一定程度上可以捕获到更精确的代码属性，但该方法依赖于特征工程的有效性，且
+人为筛选特征的过程容易遗漏掉更多的语义信息。除此以外，Allamanis等人
+~\cite{allamanis2016convolutional}提出使用卷积神经网络来学习代码的结构信息，通过加入注意力网络学习代
+码对函数名预测的重要性。虽然卷积神经网络通常被认为适合学习结构特征，但卷积神经网络学到的是位置上的局
+部特征，并非代码语义上的局部特征，因此导致其所捕获的上下文信息不够准确。
+
+本文通过程序分析，将函数表示为由代码基本块组成的代码片段，利用代码的原始特征学习代码片段的分布式表示
+（Distributed Representation）。与自然语言不同，代码具有明确的控制流结构，将程序行为拆分为多个由基本
+块组成的子功能，每个基本块代表一个最小的功能单元；同时，一个代码块由多个词条组成，词条中含有丰富的语
+义信息。基于这样的层次结构，本文通过使用层次注意力模型，分别学习代码基本块和词条（token）的重要性，
+从而得到函数体的分布式表示并预测函数名。
+
+本章主要有以下贡献：
+
+（1）本章提出了基于层次注意力网络的函数名推荐模型，通过学习函数体的分布式表示，利用序列到序列模型为
+给定函数推荐函数名。
+
+（2）本章利用代码的层次结构，将代码表示为由基本块组成的代码片段，使用原始特征学习代码片段的分布式表
+示，在代码搜索、克隆代码检测等领域有广泛的应用。
+
+（3）在开源软件系统上的对比实验证明了基于层次注意力网络的函数名推荐模型的准确性，提高了软件维护的效
+率。
+
+\section{相关研究工作}
+本节首先介绍了代码分布式表示模型，这些模型通过学习对代码的中间表示，将代码片段表示为难以直接解释的向
+量。然后介绍了与代码相关的结构化预测模型，最后介绍了关于代码与文本相互转换的模型。
+
+\subsection{分布式表示模型}
+在局部表示中，向量中的每个值通常有具体的明确的含义，例如在One-Hot表示模型中，当第$i$维数值为0时，表
+示其对应的元素没有现在该样本中。与局部表示不同，分布式表示~\cite{hinton1984distributed}假设所表示
+的元素可以在多维实数空间内进行编码，并且可以在该空间内评估两个表示之间的相关性。因此，分布式表示的结
+果通常是一种矢量或矩阵，其元素的含义分布在多个维度上。由于具有较好的总结能力，分布式表示经常在自然语
+言处理领域中被用来对自然语言中的元素进行编码。例如，Mikolov等人~\cite{mikolov2013efficient}通过学
+习自然语言中单词的分布式表示，学到了单词之间的相关性。
+
+\subsection{代码的分布式表示}
+由于在机器学习和自然语言处理上的成功运用，近年来，越来越多的研究者使用分布式表示模型表示代码，将代码
+元素映射到矢量中。代码表示模型类似于自然语言处理中的文本分类和情感分析系统，使用代码的抽象表示作为输
+入，得到关于代码属性的条件概率分布并进行预测。
+
+代码表示模型可用来预测代码片段的属性概率分布，如变量和函数名等。Allamanis等人
+~\cite{allamanis2015suggesting}发现变量和函数名的分布式表示可以学到常见的语义属性，使用上下文信息学
+习变量和函数的分布式矢量表示，并使用这种表示来预测变量名和函数名的概率分布。Mou等人
+~\cite{mou2016convolutional}使用自定义的卷积神经网络来学习代码片段的分布式矢量表示，然他们混合了学生
+对各种课程问题的解决方案，通过分类来恢复这些解决方案到问题的映射。Piech等人~\cite{piech2015learning}
+和Parisotto等人~\cite{parisotto2017neuro}学习了源代码输入/输出对的分布式表示，并使用这些表示来评估和
+审查学生任务。
+
+除此以外，部分研究使用分布式表示来学习上下文信息。例如，Maddision等人~\cite{maddison2014structured}
+通过对上下文进行分布式表示，按序生成代码。Ling等人~\cite{ling2016latent}和Allamanis等人
+~\cite{allamanis2015bimodal}将代码上下文分布式表示与自然语言的分布式表示相结合来合成代码。
+
+
+
+\subsection{代码属性预测}
+近年来，越来越多的研究者通过构建关于代码的概率模型，预测代码的属性。Raychev等人
+~\cite{raychev2015predicting}将代码表示为变量依赖关系网络，将每个javaScript变量表示为一个节点，并
+将其中的变量交互建模为条件随机场（CRF），最后通过联合预测代码片段中所有变量的类型和名称。Allamanis等
+人~\cite{allamanis2014learning,allamanis2015suggesting,allamanis2016convolutional}利用代码上下文，使
+用分布式表示来预测变量名、函数名和类的名称。
+
+
+受统计机器翻译启发，Gu等人~\cite{gu2016deep}引入序列到序列的深度神经网络
+~\cite{sutskever2014sequence}，学习了自然语言查询的中间表示，并用来预测相关的API调用序列。Murali等人
+~\cite{murali2017finding}利用主题模型的组合来学习一个循环神经网络，该神经网络为API调用序列建模。该模
+型可来检测可能性极小的API调用序列，从而检测Android代码中实际存在的缺陷。
+
+除此以外，Allamanis等人~\cite{allamanis2018learning}还通过学习将代码片段粘贴到现有的代码中，并调整所
+使用的变量来预测代码的数据流图。Livshits等人~\cite{livshits2009merlin}通过分布式表示来解决信息流问
+题。Allamanis等人~\cite{allamanis2018learning}使用代码上下文中的各种元素来检测特定类型的缺陷，如变量
+和操作符误用等。
+
+
+\subsection{注释和文档生成}
+通过学习代码与自然语言文本的关系，可以自动生成代码文档，增加代码可读性。Oda等人
+~\cite{oda2015learning}使用机器翻译技术将Python代码翻译成伪代码，从而生成易读性更高的代码；Iyer等
+人~\cite{iyer2016summarizing}设计了一个将代码总结为文本的神经注意力模型。Movshovitz等人
+~\cite{movshovitz2013natural}构建了一个推荐系统用来在给定源代码片段的情况下协助完成评论，该系统使用
+类似主题的图模型来为上下文信息建模。
+
+根据代码生成文本还可以用来自动生成注释。Sridhara等人~\cite{sridhara2010towards}提出了一种使用程序
+结构信息为java函数生成摘要注释的方法，该方法的基本思想是从函数中选出重要的语句，然后将其翻译成自然语
+言。该方法首先构建函数的数据流程图，然后分析该数据流来识别重要的语句。Wong等人
+~\cite{wong2013autocomment}通过问答网站自动生成评论，从问题标题和回答文本中提取代码和描述的映射，
+并使用代码克隆检测技术来查找与该映射相近的代码片段，查找出来的代码对通常是由开发人员从项目中复制的代
+码，然后识别该代码片段的注释并重新应用于其他项目。然而，虽然这种方法可以应用于数百万个项目，但是其仅
+对小部分代码片段有效，但无法为某个项目生成大量注释。
+
 \section{研究方法}
+本章提出基于层次注意力网络的函数名推荐方法。在编码器中使用层次注意力网络来学习代码的中间表示，该表示
+是对代码的分布式表示；使用著名的seq2seq模型~\cite{bahdanau2015neural,sutskever2014sequence}作为解码
+器，生成子词条（subtoken）序列。在预测时，给定函数体的代码片段，利用训练好的模型生成子词条序列，并使
+用集束搜索（Beam Search）生成函数名列表。
+
+给定训练数据集$\mathcal D$，模型将函数$c$的函数名分布的条件概率分布$\gamma$表示为$P_{\mathcal
+D}(\gamma|f(c))$，其中$f$是将代码$c$转换为分布式表示的函数。
+
+\section{模型架构}
+\subsection{Architecture}
+\begin{figure} [!t]
+	\centering
+	\includegraphics[width=0.65\textwidth]{architecture.pdf}
+	\caption{Architecture of Method Name Suggestion.}
+	\label{fig:arch}
+\end{figure}
+The overall architecture of the model is shown in Fig.~\ref{fig:arch}. It is a
+Encoder-Decoder model~\cite{Kyunghyun2014Learning}. As mentioned above, 
+code snippets (or methods) are composed
+hierarchically, i.e., tokens form a basic block and basic blocks form a method. Therefore,
+we employ a hierarchical attention network~\cite{yang2016hierarchical} in the encoder to learn the
+representation of the method. The encoder learns the representation of a method by two phases. In the first phase, it learns the representation of a basic block with a set of tokens. Then in the second phase, it obtains the representation of a method by feeding a sequence of basic blocks. For the decoder, a Gated Recurrent Unit
+(GRU)~\cite{Kyunghyun2014Learning} model with teacher forcing is applied to
+predict the name of the method, where teacher forcing mechanism is beneficial to fast convergence of the GRU model.
+
+
+An Encoder-Decoder model is a general method to learn the distribution over a
+variable-length sequence conditioned on another variable-length sequence. In
+this paper, given a method, represented by a sequence of basic blocks, it predicts the name
+of the method, i.e., a sequence of words. Formally, given the input sequence
+of basic blocks, denoted by $(B_1, \dots, B_L)$, the Encoder-Decoder model
+learn to predict the method name, i.e., $(w_1, \dots, w_n)$. In this problem, the
+lengths of the input and output sequences may differ. Each basic block
+consists of a sequence of tokens, e.g., $B_2 = (t_{21}, \dots, t_{2K_2})$,
+where $K_2$ is the number of tokens in the basic block $B_2$.
+
+The encoder reads the whole method sequentially, and summarizes the method by a 
+vector representation $M$ with a neural network. Namely,
+\begin{equation}
+M = f({B_1, \dots, B_L}) \,.
+\label{eq:encoder}
+\end{equation}
+
+The decoder is another neural network model which is trained to predict each 
+word of the output sequence by given the previous words and the context vector 
+from the encoder:
+\begin{equation}
+P(w_j|\{w_1, \dots, w_{j-1}\}, M) = g(\{w_1, \dots, w_{j}\}, M) \,,
+\label{eq:decoder}
+\end{equation}
+where $g$ must produce a probability, such as with a softmax function.
+
+The two components of the Encoder-Decoder model are jointly optimized to 
+maximize the conditional log-likelihood
+\begin{equation}
+\max \limits_{\bm\theta} \frac{1}{N}\sum_{n=1}^{N} \log p_{\bm\theta}(\bm w_n | 
+\bm t_n) \,,
+\label{eq:loss}
+\end{equation}
+where $N$ is the number of training samples and $\bm\theta$ refers to the set 
+of the parameters. In our case, we use differentiable neural networks in both 
+the two components, we use a stochastic gradient descent algorithm to optimize 
+the model.
+
+Existing approaches for method name suggestion miss out the structure information that is inherent in the code snippets. Two methods that consist of the same tokens but different structures could convey different semantic meanings. Therefore, this paper uses a hierarchical neural network to learn the representation of a method by taking the structure information into consideration.
+
+Next we first introduce the way to obtain input representation of code 
+snippets. 
+Then we introduce the GRU model, which is the basic module in our model. 
+Finally, we describe the design of the encoder and the decoder in details. 
+
+
 \subsection{层次序列表示}
 \subsection{层次注意力网络模型}
 \subsection{集束搜索}
@@ -15,56 +222,3 @@
 \section{实验结果}
 \section{讨论}
 \section{本章小结}
-
-
-
-
-\begin{figure}
-    \centering
-    \input{./figure/process}
-    \caption{\label{fig:exmaple2} 示例流程图2}
-\end{figure}
-
-
-\label{sec:method:code}
-
-python 代码可以直接使用\textbf{python}环境
-
-\begin{python}[caption={斐波那契Python}]
-def fibonacci(n):
-    # Fibonacci number
-    if n < 0:
-        return False
-    if n <= 1:
-        return n
-    return fibonacci(n-2) + fibonacci(n-1)
-\end{python}
-
-C/C++ 代码可以直接使用\textbf{cpp}环境
-
-\begin{cpp}[caption={斐波那契C++}]
-unsigned long Fibonacci(int n)
-{
-    // Fibonacci start from 0
-    if (n <= 1) 
-    {
-        return n;
-    }
-    else 
-    {
-        return Fibonacci(n - 1) + Fibonacci(n - 2);
-    }
-}
-\end{cpp}
-
-其他代码,使用\textbf{lstlisting}指明 \textbf{language}即可，如matlab代码
-
-\begin{lstlisting}[caption={Matlab代码},language=Matlab]
-function a = factorial(n)
-% return n!
-    if n==0
-        a=1;
-    else
-        a=n * factorial(n-1);
-    end
-\end{lstlisting}
