@@ -197,9 +197,8 @@ NoSQL数据库系统，其中函数的数量超过一万。当面对如此大规
 \subsection{编码-解码模型}
 编码-解码模型为常见的一种模型框架，其核心思想是将输入$x$通过编码转化为一个向量$C$，再将向量$C$通过解
 码转化为输出$y$。其中用来编码的模型为编码器（Encoder），用来解码的模型为解码器（Decoder）。编码器和
-解器均可以为任意的模型，如CNN、RNN、GRU等；输入和输出也可以是任意的形式，如文字、图像等。当$x$和$y$
-均为序列时，这样的模型也被称为序列到序列模型（Seq2Seq）。在实际应用中存在很多序列到序列的问题，例如
-翻译、问答系统等。
+解器均可以为任意的模型；输入和输出也可以是任意的形式，如文字、图像等。当$x$和$y$均为序列时，这样的模
+型也被称为序列到序列模型（Seq2Seq）。在实际应用中存在很多序列到序列的问题，例如翻译、问答系统等。
 
 图~\ref{fig:seq2seq}为一个序列到序列模型的例子，其中编码器和解码器均使用循环神经网络（Recurrent Neural
 Networks, 简称RNN）。给定输入序列$x=\{x_1,x_2,...,x_m\}$，该模型使用RNN将输入序列$x$编码为一个固定长
@@ -520,11 +519,53 @@ p(y_2,y_1|m) = p(y_2|y_1,m)p(y_1|m) \,,
 \end{align}
 \label{beam}
 
-\section{实验设置}
-\subsection{数据集和对比实验}
+\section{实验设计}
+本节评估了基于层次注意力的函数名推荐模型的有效性，通过在10个开源软件系统上进行实验，对比评估了本文方法与
+\subsection{实验对象}
+We evaluated the proposed model on 10 open source software projects from
+GitHub. These projects were used in the original study that presented a CNN
+with attention to summarize code~\cite{allamanis2016convolutional}. They
+collected these projects by selecting top 10 projects according to the
+z-scores of the number of forks and watchers. Like previous
+studies~\cite{allamanis2016convolutional}, we are interested in predicting
+names for methods within each project. Specifically, we shuffle the java files
+in each project, and randomly split them into 80\% training, 10\% validation
+and 10\% testing methods. Like traditional machine learning process, we train
+the model on the training set, and tune hyperparameters, such as dimensions of
+hidden units and the number of epochs, on the validation set with F1 score.
+Finally, we test the performance of the model on the testing set. The details
+of the collected dataset can be seen in Table~\ref{benchmark}. It can be seen
+that the selected projects are popular among developers in GitHub, with
+thousands of stars and forks.
+
+\begin{table}[!t]
+\renewcommand{\arraystretch}{1.4}
+% if using array.sty, it might be a good idea to tweak the value of
+% \extrarowheight as needed to properly center the text within the cells
+\caption{Statistics of Datasets}
+\label{benchmark}
+\centering
+\begin{tabular}{l@{\quad}l@{\quad}l@{\quad}l@{\quad}l}
+\toprule 
+Projects &Size(M) &\#Methods &\#Stars &\#Forks\\ 
+\hline
+Apache Cassandra &11.1 &10,466 &4,502 &2,061\\ 
+Elasticsearch &19.8 &15,409 &32,393 &11,104\\ 
+Gradle &14.1 &16,050 &7,096 &2,227\\ 
+Hadoop-common &37.5 &33,237 &121 &141\\ 
+Hibernate-orm &21.6 &34,307 &3,275 &2,250\\ 
+Intellij-community &5.84 &6,972 &6,182 &2,362\\ 
+Liferay-portal &47.9 &52,539 &1,258 &2,114\\ 
+Presto &11.0 &10,672 &7,755 &2,616\\ 
+Spring-framework &29.3 &33,157 &22,182 &14,313\\ 
+Wildfly &14.2 &9,566 &2,012 &1,805\\ 
+\bottomrule
+\end{tabular}
+\end{table}
+
 去掉出现过的Self替代
 
-\subsection{评价指标}
-\section{实验结果}
+\subsection{评估方法}
+\section{实验结果与分析}
 \section{讨论}
 \section{本章小结}
