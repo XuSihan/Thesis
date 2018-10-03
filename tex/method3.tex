@@ -283,6 +283,7 @@ $p(y|t)$，最后通过最大条件对数似然来优化该联合模型：
 其中$N$表示训练样本的个数，$\bm\theta$为模型中的参数，通过使用随机梯度下降来优化模型的参数。
 
 \subsection{代码段表示}
+\label{represent}
 为了提高模型的抽象和总结能力，本文将函数体拆分为多个代码基本块，每个代码块作为执行函数子功能的最小单
 元，通过注意力机制学习不同代码基本块对函数名预测的重要性。
 
@@ -520,34 +521,39 @@ p(y_2,y_1|m) = p(y_2|y_1,m)p(y_1|m) \,,
 \label{beam}
 
 \section{实验设计}
-本节评估了基于层次注意力的函数名推荐模型的有效性，通过在10个开源软件系统上进行实验，对比评估了本文方法与
-\subsection{实验对象}
-We evaluated the proposed model on 10 open source software projects from
-GitHub. These projects were used in the original study that presented a CNN
-with attention to summarize code~\cite{allamanis2016convolutional}. They
-collected these projects by selecting top 10 projects according to the
-z-scores of the number of forks and watchers. Like previous
-studies~\cite{allamanis2016convolutional}, we are interested in predicting
-names for methods within each project. Specifically, we shuffle the java files
-in each project, and randomly split them into 80\% training, 10\% validation
-and 10\% testing methods. Like traditional machine learning process, we train
-the model on the training set, and tune hyperparameters, such as dimensions of
-hidden units and the number of epochs, on the validation set with F1 score.
-Finally, we test the performance of the model on the testing set. The details
-of the collected dataset can be seen in Table~\ref{benchmark}. It can be seen
-that the selected projects are popular among developers in GitHub, with
-thousands of stars and forks.
+本节评估了基于层次注意力的函数名推荐模型的有效性，通过在10个开源软件系统上进行实
+验，对比评估了基于层次注意力的模型与其它三种模型推荐函数名的准确性，验证了本章方
+法的有效性。
+
+\subsection{实验对象与数据处理}
+本章的实验对象为10个来自GitHub的开源软件系统。表~\ref{benchmark3}为实验对象的统
+计数据，可以看出，本章的实验对象为GitHub上收藏和使用较多的开源软件系统，且规模较
+大。由于大规模软件系统的维护成本和维护难度较高，因此提高大型软件系统的易读性和维
+护效率具有重要的意义。
+
+
+为了根据不同软件系统的代码习惯推荐个性化的函数名，同时与之前的研究保持一致，在实
+验中针对每个软件系统训单独训练一个函数名推荐模型。具体来说，对于表
+~\ref{benchmark3}中的每个软件系统，首先提取其中所有的函数，并过滤掉其中的抽象函
+数、构造函数和重写函数。过滤掉抽象函数是因为模型的输入为构成函数体的代码
+片段，而抽象函数没有代码片段，无法正常预测；过滤掉构造函数是因为构造函数的函数名
+与类名相一致，因此对函数名的推荐类似于推荐类名称，与本文模型的主要目的不同；过滤
+掉重写函数是因为重写函数由于重复的原因，在模型中很容易预测。
+通过这样的方式，针对每个软件系统能够获得一个函数样本集，将样本集随机打乱，并将其
+中80\%的样本作为训练数据，10\%的样本作为验证数据，剩下的10\%作为测试数据来评估模
+型在该软件系统上的有效性。
 
 \begin{table}[!t]
+\scriptsize
 \renewcommand{\arraystretch}{1.4}
 % if using array.sty, it might be a good idea to tweak the value of
 % \extrarowheight as needed to properly center the text within the cells
-\caption{Statistics of Datasets}
-\label{benchmark}
+\caption{实验对象统计数据}
+\label{benchmark3}
 \centering
 \begin{tabular}{l@{\quad}l@{\quad}l@{\quad}l@{\quad}l}
 \toprule 
-Projects &Size(M) &\#Methods &\#Stars &\#Forks\\ 
+软件名称 &大小(M) &函数数量 &收藏数量 &使用数量\\ 
 \hline
 Apache Cassandra &11.1 &10,466 &4,502 &2,061\\ 
 Elasticsearch &19.8 &15,409 &32,393 &11,104\\ 
@@ -563,9 +569,42 @@ Wildfly &14.2 &9,566 &2,012 &1,805\\
 \end{tabular}
 \end{table}
 
-去掉出现过的Self替代
+对于数据集中的每个函数，将其作为一个样本，函数体是为样本的输入代码段，函数为样本
+的标签。对于除本章方法以外的三个模型，通过分词的方式将函数体和函数名进行表示为词
+项序列，对于代码中与函数名相同的标识符，使用词项``SELF''进行代替，其余标识符则根
+据两种命名惯例进行分词，分别是下划线式（my\_case）与驼峰式（myCase或MyCase），从
+而得到样本的输入序列和输出序列。在评估本章模型时，需要将输入序列表示为具有层次结
+构的词项和代码基本块序列。最后，利用训练集对模型进行训练，并通过验证集调整超参，
+例如基本代码块中词项序列的最大长度、隐藏单元的个数等，并在测试集上评估方
+法的有效性。为了使实验具有可重复性，已将本次实验的数据集发布。
 
 \subsection{评估方法}
+本章从两个层面衡量函数名推荐的准确性，分别是函数名与词项。其中，函数名的精确匹配
+要求预测的函数名与输入代码片段的函数名完全一致；而词项级别的评估方法则以词项为单
+位，不考虑词项的顺序，只考虑词项的准确率、召回率和F值。具体来说，准确率
+表示预测的词项中正确预测的词项所占的百分比；召回率表示函数名的词项序列中被成功预
+测到的词项所占的百分比；F值则为准确率和召回率的加权调和平均，通过公式~\ref{f1}进行
+计算。
+
+\subsection{对比实验}
+为了评估本章方法的有效性，将其与词频-逆文件频率算法、循环神经网络和卷积神经网络
+三个模型进行对比实验。其中，词频-逆文件频率算法（Term Frequency–Inverse Document
+Frequency，简称tf-idf算法）为信息检索领域常用的一种统计方法，其核心思想通过词项
+对文档的重要性与该词项在当前文档中出现的频率成正比，与其在所有文档中出现的频率成
+反比。在本章实验中，由于在构建词项字典时已经统计了每个词项在所有函数体中出现的频
+率，因此使用tf-idf算法为给定函数体推荐函数名，只需要统计输入词项序列中每个词项在
+输入中出现的频率即可。由于函数名推荐的本质是对函数功能的翻译和总结，因此本章还使
+用了在机器翻译领域有较好表现的双向RNN-attention模型~\cite{bahdanau2015neural}，
+该模型在双向RNN的基础上加入了注意力机制，被认为可以学习输入序列与输出序列之间的
+权重关系。除此以外，本章还将基于层次注意力的函数名推荐模型与基于卷积神经网络和注
+意力机制的函数名推荐模型~\cite{allamanis2016convolutional}（以下简称为
+CNN-attention模型）进行对比，该方法通过卷积神经网络学习代码结构的局部特征。与该
+方法不同的是，本文将程序分析与注意力机制相结合，将函数拆分为多个代码基本块，并学
+习每个代码基本块对函数名的重要性。最后，在训练阶段，使用推荐的参数对
+RNN-attention和CNN-attention模型进行训练。本文模型在训练过程中使用Adam梯度下降算
+法~\cite{kingma2014adam}作为优化器，并使用了dropout~\cite{srivastava2014dropout}
+来防止模型过拟合。
+
 \section{实验结果与分析}
 \section{讨论}
 \section{本章小结}
