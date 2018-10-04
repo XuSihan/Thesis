@@ -1,4 +1,4 @@
-%%
+﻿%%
 %% ---------------------------------------------------------------
 %% biblatex-gb7714-2015 --- A biblatex implementation of the
 %% GBT7714-2015  bibliography style,numerical sequence
@@ -297,8 +297,8 @@
         and         = {\addcomma},%将第2和3人名见的and符号改成 逗号，用\finalnamedelim命令也可以定义，参见3.9.1节
         %andothers   = {et al.},        %将超过3个人名的省略，et al.改成为 等
         andotherscn   = {等},        %将超过3个人名的省略，et al.改成为 等
-        noaddress = {[S.l.]},
-        nopublisher = {[s.n.]},
+        noaddress = {},   %[S.l.]
+        nopublisher = {},   %[s.n.]
         backrefpage      = {引用页:},
         backrefpages     = {引用页:},
     }
@@ -1238,16 +1238,17 @@
 \newbibmacro*{location+institution+date}{%
 \iftoggle{bbx:gbpub}%
 {\testCJKfirst{\thefield{userd}}
-\iflistundef{location}{\iftoggle{ifCJKforgbt}{\printtext{[出版地不详]}}{\printtext{[S.l.\adddot]}}}%
+\iflistundef{location}{\iftoggle{ifCJKforgbt}{\printtext{[出版地不详]}}{\printtext{}}}%printtext [S.l.\adddot]
   {\printlist{location}}%
 %  \iflistundef{institution}
 %    {\setunit*{\addcomma\space}}
 %    {\setunit*{\addcolon\space}}%
 %  \printlist{institution}%
 %  \setunit*{\addcomma\space}%
-\addcolon\addspace%
+% \addcolon\addspace%
+\setunit{\addcomma\space}
 \iflistundef{institution}{%
-\iftoggle{ifCJKforgbt}{\printtext{[出版者不详]}}{\printtext{\mkbibbrackets{s.n.}}}}% \bibstring{nopublisher}%[s.n.\adddot]
+\iftoggle{ifCJKforgbt}{\printtext{[出版者不详]}}{\printtext{}}}% \bibstring{nopublisher}%[s.n.\adddot] \mkbibbrackets{s.n.}
 {\printlist{institution}}%
 \setunit{\addcomma\addspace}%
   %\usebibmacro{date}%
@@ -1270,15 +1271,16 @@
 {\testCJKfirst{\thefield{userd}}%
 \iflistundef{location}{%\adddot
 \iffieldequalstr{note}{standard}{}{%从gbt7714-2015标准第19页看到，标准存在出版项时输出，没有时完全省略。
-\iftoggle{ifCJKforgbt}{\printtext{[出版地不详]}\addcolon\addspace}{\printtext{[S.l.\adddot]}\addcolon\addspace}%
+\iftoggle{ifCJKforgbt}{\printtext{[出版地不详]}\addcolon\addspace}{\printtext{}}
+\setunit{\addcomma\addspace}%\addcolon\addspace}%[S.l.\adddot]
 }}%  \bibstring{noaddress}
 {\printlist{location}\addcolon\addspace}%
 %\addcolon\addspace%
 \iflistundef{publisher}{%
 \iffieldequalstr{note}{standard}{}{%
 \iftoggle{ifCJKforgbt}{\printtext{[出版者不详]}\setunit{\adddot\addspace}\setunit*{\addcomma\addspace}}%
-{\printtext{\mkbibbrackets{s.n.}}\setunit{\adddot\addspace}\setunit*{\addcomma\addspace}}%
-}}%
+{\printtext{}}%\setunit{\adddot\addspace}\setunit*{\addcomma\addspace}}%
+}}%printtext \mkbibbrackets{s.n.}
 {\printlist{publisher}\setunit*{\addcomma\addspace}}%
 %\addcomma\addspace%
 \usebibmacro{date}%
