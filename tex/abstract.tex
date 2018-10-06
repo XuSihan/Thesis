@@ -4,7 +4,44 @@
 
 \begin{zhaiyao}
 
-	这里输入中文摘要。
+在当代社会，软件系统已经深入到社会生活的各个方面。在软件系统发布后，需要不断对软件进行维护，从而使软
+件系统能够正确、高效地运行。其中纠错性软件维护和完善性软件维护是提高软件正确性和效率的重要手段。由于
+软件维护占据整个软件生命周期的大部分，因此不能快速、可靠地进行软件维护往往给社会经济带来巨大的损失。
+
+为了提高软件维护的效率和性能，很多研究者致力于开发自动化的软件维护工具。然而，由于软件维护自身的复杂
+性，目前很难制定出完整而严密的方案来完全自动化地解决软件维护中的难题，软件维护仍然需要大量时间和人力
+成本。尽管如此，软件维护的过程是存在规律的，而不是随机的、无章可循的。随着开源社区的成熟和版本控制工
+具的发展，提供了越来越多的软件数据，也为基于数据驱动的软件维护带来了可能性。
+
+本文针对软件维护中最重要的两个软件维护类型，纠错性软件维护和完善性软件维护，提出了基于数据驱动的方
+法，挖掘数据中的潜在规律作为软件维护问题的解决方案。从数据的角度理解软件维护的过程，将软件维护问题转
+化为数据挖掘问题，能够在提高软件维护效率的同时，减少软件维护成本。
+
+为了提高软件维护的效率和性能，本文基于数据驱动的思路进行了以下研究：
+
+（1）为了提高纠错性软件维护的效率，本文提出了基于相关统计量的缺陷定位方法，将多缺陷定位问题转化为数
+据挖掘中的特征选择问题。具体而言，将每个测试用例作为样本，执行结果作为二分类标签，执行覆盖信息作为样
+本特征，根据特征对样本类别的重要性计算覆盖特征的可疑度。通过为每个测试用例寻找距离其最近的同类和异类
+测试用例，将距离同类越近、距离异类越远的特征作为越能够区分样本类别的特征，从而找到覆盖后容易导致测试
+用例失效执行的特征作为缺陷相关覆盖特征。由于本文方法能够为每个失效用例找到最有可能与其由同一缺陷触发
+的失效用例，因此能够降低多缺陷之间的相互影响，从而提高多缺陷程序的定位效率。
+
+（2）为了提高完善性软件维护的效率，本文首次提出基于机器学习的重构机会推荐方法。通过挖掘开源软件仓库
+中真实存在的函数抽取重构实例，使用梯度上升决策树构建关于函数抽取重构的概率模型。模型中不仅融合了复杂
+度、内聚度和耦合度三个重要软件质量因素，还综合考虑了变量、类型、函数调用等多种程序元素。在推荐阶段，
+本文基于``生成并排序''的基本框架，首先为给定函数生成所有合法的函数抽取重构机会，然后通过模型为每个重
+构机会分配一个概率，按照概率由高至低推荐给用户。本文设计并开发了基于Eclipse的函数抽取重构推荐工具，
+通过为用户推荐带有概率的函数抽取重构机会，提高了软件维护的效率。
+
+（3）为了提高软件系统的易读性和可维护性，本文在编码-解码模型的框架上提出了基于层次注意力的函数名推荐
+方法。软件维护过程中最耗费时间和精力的是阅读代码的过程，而准确的函数名能够提高代码阅读的速度，从而提
+高软件维护的效率。本文通过挖掘开源软件系统，学习函数命名的内在规律，从而为给定代码片段推荐合适的函数
+名。具体而言，在编码器中，本文根据代码的控制流信息，将输入代码段拆分为由多个代码基本块组成的序列，每
+个代码基本块为一个词项序列；利用层次注意力机制分别学习词项对代码块、代码块对代码片段的重要性，从而将
+输入代码段编码为一个分布式表示向量；在解码器中，使用基于门控循环单元的模型依次预测词项，直到输出结束
+符号为止。本文模型通过学习代码段的分布式表示，以及函数名在该分布式表示上的条件概率，为函数体推荐具有
+概括抽象能力的函数名，从而提高软件系统的易读性、易理解性和可维护性，在一定程度上提高了软件维护的效
+率。
 \end{zhaiyao}
 
 
@@ -18,8 +55,74 @@
 
 \begin{abstract}
 
+In the modern society, software systems have penetrated into all aspects of social life. Once the
+software system is released, the software needs to be continuously maintained, so that the software
+system can run correctly and efficiently. Among them, error correction software maintenance and
+perfect software maintenance are two important means to improve the correctness and efficiency of
+the software. Because software maintenance occupies the majority of the entire software life cycle,
+software maintenance that cannot be performed quickly and reliably often causes huge losses to the
+social economy.
 
-	This is the abstract.
+To improve the efficiency and performance of software maintenance, many researchers are committed to
+developing automated software maintenance tools. However, due to the complexity of software
+maintenance, it is currently difficult to develop a complete and rigorous solution to completely
+solve the problems in software maintenance. Software maintenance still requires a lot of time and
+labor costs. Despite this, the process of software maintenance is regular, not random and
+unconventional. As the open source community matures and version control tools evolve, more and more
+software data is available, which also opens up possibilities for data-driven software maintenance.
+
+This paper focuses on the two most important software maintenance types in software maintenance,
+i.e., error correction software maintenance and perfect software maintenance, and proposes
+data-driven methods to mine the potential law in the data as solutions to the software maintenance
+problems. Understanding the software maintenance process from a data perspective, turning software
+maintenance issues into data mining problems can improve software maintenance efficiency while
+reducing software maintenance costs.
+
+In order to improve the efficiency and performance of software maintenance, this paper conducts the
+following research based on the data-driven approach:
+
+(1) In order to improve the efficiency of error correction software maintenance, this paper proposes
+a defect location method based on correlation statistics to transform the multi-defect location
+problem into the feature selection problem in data mining. Specifically, each test case is taken as
+a sample, the execution result is used as a two-category tag; the coverage information is cosidered
+to be features of samples; the suspiciousness of the coverage feature is calculated according to the
+importance of the feature to the sample category. By finding the nearest homogeneous and
+heterogeneous test cases for each test case, the features that are closer to the same kind and
+farther away from the heterogeneous class are considered to be features that can distinguish the
+sample categories. In this way, features that are likely to lead to the failure of the test cases
+after the coverage can be identified. Since the method can find the failure that is most likely to
+be triggered by the same defect for each failure, the mutual influence between multiple defects can
+be reduced, thereby improving the positioning efficiency of the multi-defect program.
+
+(2) In order to improve the efficiency of perfect software maintenance, this paper first proposes a
+recommendation method for refactoring opportunities based on machine learning. By mining the
+real-world functions in the open source software warehouse, the samples are collected, and then the
+gradient boosting decision tree is used to construct the probability model for Extract Method
+refactoring. The model not only combines three important software quality factors of complexity,
+cohesion and coupling, but also considers various program elements such as variables, types and
+function calls. In the recommendation stage, based on the framework of ``generate-and-rank'', it
+first generates all legal Extrac Method refactoring opportunities for a given method, and then
+assigns a probability to each refactoring opportunity. Finnaly, according to the probabilitese, it
+recommends Extract Method refactoring opportunities to users. Moreover, this paper designs and
+implements an Eclipse-based Extract Method refactoring recommendation tool, so as to improve the
+efficiency of software maintenance.
+
+(3) In order to improve the readability and maintainability of software systems, this paper proposes
+a model based on hierarchical attention mechanisms to suggest names for methods. This model is built
+based on the encoder-decoder framework. For the reason that the most time-consuming and
+energy-intensive process of software maintenance is reading code, appropriate method names can
+facilitate code reading, and thus improving the efficiency of software maintenance. This paper
+explores the inherent laws of naming mathods by mining open source software systems. Specifically,
+in the encoder, according to the control flow information of code, the input code segment is split
+into several basic blocks, and each basic block is a sequence of tokens. By using hierarchical
+attention mechanisms, the model can learn the importance of each token and that of eah basic block
+respectively. In this way, the model can encode the input code segment into a distributed vector. In
+the decoder, based on the Gate Recurrent Unit (GRU) model, it is able to sequentially predict the
+output tokens. By learning the distributed representation of each code segment and the conditional
+probability of method names over distributed representation, this model can improve the readability,
+comprehensibility and reliability of software systems, and thus improve the efficiency of software
+maintenance.
+
 
 \end{abstract}
 

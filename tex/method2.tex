@@ -172,12 +172,13 @@ Silva等人的JExtract~\cite{silva:ICPC14,silva:CoRR15}，该方法与本章方�
 
 图~\ref{refactor-example}为来自AsyncHttpClient库\footnote{AsyncHttpClient为处理Java应用HTTP请求的代
 码库：\url{https://github.com/AsyncHttpClient/async-http-client}}的一个简单的重构示例。图
-~\ref{fig:before}为重构前的函数$calculateSignature$，该函数的功能是计算HTTP签名。函数中第
-2\textasciitilde9行实现了对参数进行编码的功能，并在接下来的版本中作为一个新的函数$encodeParameter$
+~\ref{fig:before}为重构前的函数$calculateSignature()$，该函数的功能是计算HTTP签名。函数中第
+2\textasciitilde9行实现了对参数进行编码的功能，并在接下来的版本中作为一个新的函数$encodeParameter()$
 （图~\ref{fig:new}）被提取出来。图~\ref{fig:after}为函数抽取重构后的函数，可以看到在第2行通过调用新
 函数，保持函数的语义和功能不发生改变。
 
 \begin{table}[!t]
+  \scriptsize
   \renewcommand{\arraystretch}{1.3}
   \caption{示例函数的函数抽取重构机会}
   \label{example_metrics}
@@ -824,8 +825,12 @@ JExtract、SEMI和JDeodorant分别生成了1052、876、228和28个函数抽取�
 通过观察针对长函数的实验数据，发现~\ref{RQ4}中所使用的长函数大多不止一个函数抽取操作（平均每个函数
 1.9个），而GEMS的原理是预测候选函数抽取重构机会为正例的概率，并根据概率进行排序推荐。因此，不难理解，GEMS为相似的函数抽取重构机会分配相近的概率。同时，由于函数体内存在不止一个应该被抽取的代码片段，导致GEMS在为其中一个相关的函数抽取重构机会分配到高概率的同时，会为与其相似的其它重构机会分配较高的概率，因此导致其它不相似但应该被抽取的代码段的概率排名相对较低，最终导致了模型效率的下降。与GEMS相反，SEMI在推荐阶段将相似的函数抽取重构机会聚为一类，每次只从中选择排名最高的一个函数抽取重构机会进行推荐，从而取得了不错的表现结果。
 
-针对上述问题，为使用者提供了两种策略：（1）建议用户一步只进行一个函数抽取重构，在完成重构后，若使用
-者仍希望继续进行函数抽取，则再次选择该函数，进行下一轮的函数抽取重构推荐，直到使用者放弃重构为止；（2）基于与SEMI类似的思路，可以将相似的函数抽取重构机会放到一组中，对于每组只推荐概率最高的函数抽取重构机会给用户。具体来说，如果两个函数抽取重构机会$a$和$b$满足以下条件，则认为它们较为相似，可以被放到一组：
+针对上述问题，本文为使用者提供了两种策略：第一种，用户可以一步只进行一个函数抽取重构，在选定需要重构
+的函数后，GEMS为用户推荐函数抽取重构机会列表，用户通过选择合适的重构机会让工具进行实施，在完成重构
+后，若用户仍希望继续进行函数抽取，则再次选择该函数，进行下一轮的函数抽取重构推荐，直到使用者放弃重构
+为止；（2）基于与SEMI类似的思路，可以将相似的函数抽取重构机会放到一组中，对于每组只推荐概率最高的函
+数抽取重构机会给用户。具体来说，如果两个函数抽取重构机会$a$和$b$满足以下条件，则认为它们较为相似，可
+以被放到一组：
 \begin{eqnarray}
   \frac{\lvert{Start_a - Start_b}\rvert + \lvert{End_a - End_b}\rvert}{MAX(LoC_a, LoC_b)}\leq \it Threshold，
 \end{eqnarray}
