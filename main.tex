@@ -20,10 +20,14 @@
 \usepackage{algorithmic}
 \usepackage{booktabs}
 \usepackage{multirow}
-\usepackage[linesnumbered,ruled]{algorithm2e}
+\usepackage[linesnumbered,ruled,algochapter]{algorithm2e}
+%\newcounter{algorithm}[chapter]
+%\numberwithin{algorithm}{chapter}
 \renewcommand{\algorithmcfname}{算法}
-\renewcommand{\KwIn}{\textbf{输入:}}
-\renewcommand{\KwOut}{\textbf{输出:}}
+%\renewcommand{\KwIn}{\textbf{输入:}}
+%\renewcommand{\KwOut}{\textbf{输出:}}
+\SetKwInput{KwIn}{输入}
+\SetKwInput{KwOut}{输出}
 \newcommand{\tabincell}[2]{\begin{tabular}
 {@{}#1@{}}#2\end{tabular}}
 \usepackage{listings}

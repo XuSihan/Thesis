@@ -64,35 +64,35 @@ some rules that can be mined from the process of software maintenance. As the op
 matures, more and more software data has been available, which establishes the foundation of
 data-driven software maintenance.
 
-This paper focuses on two major types of software maintenance, i.e., corrective and perfective
-maintenance, and proposes data-driven approaches to solve critical problems in software maintenance.
-In order to improve the efficiency and performance of software maintenance, this paper conducts the
-following research:
+This dissertation focuses on two major types of software maintenance, i.e., corrective and
+perfective maintenance, and proposes data-driven approaches to solve critical problems in software
+maintenance. In order to improve the efficiency and performance of software maintenance, this
+dissertation conducts the following research:
 
-(1) In order to improve the efficiency of corrective maintenance, this paper proposes a defect
-localization approach that transforms the problem of multi-defect localization into the a feature
-selection problem. Specifically, by taking each test case as a sample, the coverage spectra of it
-can be considered as the features, and whether the test case passes or fails is naturally the label.
-Suspiciousness of each feature can be calculated according to the importance of it. Inspired by the
-Relief algorithm, this paper proposes to find features that can distinguish between the positive and
-negative samples effectively. Features that are likely to leads to the failures can be identified as
-defect-prone features. Since the proposed method can find the failure that is most likely to be
-triggered by the same defect for each failure, the influence between multiple defects can be
-reduced, and the proposed method can improve the efficiency of defect localization.
+(1) In order to improve the efficiency of corrective maintenance, this dissertation proposes a
+defect localization approach that transforms the problem of multi-defect localization into the a
+feature selection problem. Specifically, by taking each test case as a sample, the coverage spectra
+of it can be considered as the features, and whether the test case passes or fails is naturally the
+label. Suspiciousness of each feature can be calculated according to the importance of it. Inspired
+by the Relief algorithm, this dissertation proposes to find features that can distinguish between
+the positive and negative samples effectively. Features that are likely to leads to the failures can
+be identified as defect-prone features. Since the proposed method can find the failure that is most
+likely to be triggered by the same defect for each failure, the influence between multiple defects
+can be reduced, and the proposed method can improve the efficiency of defect localization.
 
-(2) In order to improve the efficiency of perfective maintenance, this paper proposes a machine
-learning-based method to recommend Extract Method refactoring opportunities. By mining real-world
-refactorings in open source software, this paper builds a probabilistic model of Extract Method
-refactorings based on gradient boosting decision tree (GBDT). During feature extraction, the
-proposed model not only incorporates the idea of complexity, cohesion and coupling, but also
-considers various program elements such as variables, types and method invocations. This model is a
-``generate-and-rank'' system, which first generates all valid Extract Method refactoring
+(2) In order to improve the efficiency of perfective maintenance, this dissertation proposes a
+machine learning-based method to recommend Extract Method refactoring opportunities. By mining
+real-world refactorings in open source software, this dissertation builds a probabilistic model of
+Extract Method refactorings based on gradient boosting decision tree (GBDT). During feature
+extraction, the proposed model not only incorporates the idea of complexity, cohesion and coupling,
+but also considers various program elements such as variables, types and method invocations. This
+model is a ``generate-and-rank'' system, which first generates all valid Extract Method refactoring
 opportunities for a given method, and then assigns a probability to each refactoring opportunity, by
-which it recommends Extract Method refactoring opportunities to users. Moreover, this paper designs
-and implements an Eclipse-plugin to recommend Extract Method refactorings, so as to improve the
-efficiency of software maintenance.
+which it recommends Extract Method refactoring opportunities to users. Moreover, this dissertation
+designs and implements an Eclipse-plugin to recommend Extract Method refactorings, so as to improve
+the efficiency of software maintenance.
 
-(3) In order to improve the readability and maintainability of software systems, this paper proposes
+(3) In order to improve the readability and maintainability of software systems, this dissertation proposes
 a deep learning model that explores hierarchical attention mechanisms to suggest names for methods.
 This model is built based on the encoder-decoder framework. By mining open source software, the
 proposed model can learn the inherent rules of naming methods. Specifically, in the encoder, given a
