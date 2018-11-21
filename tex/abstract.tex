@@ -51,10 +51,10 @@
 With the development of information technology, software systems have been applied to almost all
 aspects of modern society. Once software system is released, it has to be maintained continuously,
 so that the software system can run correctly and efficiently. Corrective and perfective maintenance
-are major types of maintenance that can improve the correctness and efficiency of software systems.
-For the reason that software maintenance occupies the majority of the entire software life cycle,
-software systems that cannot be maintenanced efficiently and reliably can cause huge financial
-losses to society.
+are two major types of maintenance that can improve the correctness and efficiency of software
+systems. For the reason that software maintenance occupies the majority of the entire software life
+cycle, software systems that cannot be maintenanced efficiently and reliably can cause huge
+financial losses to society.
 
 To improve the efficiency and effectiveness of software maintenance, much research has been done to
 develop automated software maintenance tools. However, due to the complexity of software
@@ -70,9 +70,9 @@ maintenance. In order to improve the efficiency and performance of software main
 dissertation conducts the following research:
 
 (1) In order to improve the efficiency of corrective maintenance, this dissertation proposes a
-defect localization approach that transforms the problem of multi-defect localization into the a
+defect localization approach that transforms the problem of multi-defect localization into a 
 feature selection problem. Specifically, by taking each test case as a sample, the coverage spectra
-of it can be considered as the features, and whether the test case passes or fails is naturally the
+ can be considered as the features, and whether the test case passes or fails is naturally the
 label. Suspiciousness of each feature can be calculated according to the importance of it. Inspired
 by the Relief algorithm, this dissertation proposes to find features that can distinguish between
 the positive and negative samples effectively. Features that are likely to leads to the failures can
@@ -83,27 +83,27 @@ can be reduced, and the proposed method can improve the efficiency of defect loc
 (2) In order to improve the efficiency of perfective maintenance, this dissertation proposes a
 machine learning-based method to recommend Extract Method refactoring opportunities. By mining
 real-world refactorings in open source software, this dissertation builds a probabilistic model of
-Extract Method refactorings based on gradient boosting decision tree (GBDT). During feature
-extraction, the proposed model not only incorporates the idea of complexity, cohesion and coupling,
-but also considers various program elements such as variables, types and method invocations. This
-model is a ``generate-and-rank'' system, which first generates all valid Extract Method refactoring
-opportunities for a given method, and then assigns a probability to each refactoring opportunity, by
-which it recommends Extract Method refactoring opportunities to users. Moreover, this dissertation
-designs and implements an Eclipse-plugin to recommend Extract Method refactorings, so as to improve
-the efficiency of software maintenance.
+Extract Method refactorings based on gradient boosting decision tree (GBDT). The proposed model not
+only incorporates the idea of complexity, cohesion and coupling, but also considers various program
+elements such as variables, types and method invocations. This model is a ``generate-and-rank''
+system, which first generates all valid Extract Method refactoring opportunities for a given method,
+and then assigns a probability to each refactoring opportunity, by which it recommends Extract
+Method refactoring opportunities to users. Moreover, this dissertation designs and implements an
+Eclipse-plugin to recommend Extract Method refactorings, so as to improve the efficiency of software
+maintenance.
 
-(3) In order to improve the readability and maintainability of software systems, this dissertation proposes
-a deep learning model that explores hierarchical attention mechanisms to suggest names for methods.
-This model is built based on the encoder-decoder framework. By mining open source software, the
-proposed model can learn the inherent rules of naming methods. Specifically, in the encoder, given a
-piece of code fragment, the model first splits it into a sequence of basic blocks, where each basic
-block is a sequence of tokens. Through hierarchical attention mechanisms, the model can learn the
-importance of each token and that of each basic block respectively. In this way, the model can
-represent the code fragment by a distributed vector. In the decoder, based on the Gate Recurrent
-Unit (GRU) model, the proposed model predicts the tokens that can form a method name sequentially.
-By learning the conditional probability distribution of method names over code fragments, this model
-can suggest names for methods effectively, in order to improve the readability, comprehensibility
-and reliability of software systems.
+(3) In order to improve the readability and maintainability of software systems, this dissertation
+proposes a model that explores hierarchical attention mechanisms to suggest names for methods. This
+model is built based on the encoder-decoder framework. By mining open source software, the proposed
+model can learn the inherent rules of naming methods. Specifically, in the encoder, given a piece of
+code fragment, the model first splits it into a sequence of basic blocks, where each basic block is
+a sequence of tokens. Through hierarchical attention mechanisms, the model can learn the importance
+of each token and that of each basic block respectively. In this way, the model can represent the
+code fragment by a distributed vector. In the decoder, based on the Gate Recurrent Unit (GRU) model,
+the proposed model predicts the tokens that can form a method name sequentially. By learning the
+conditional probability distribution of method names over code fragments, this model can suggest
+names for methods effectively, in order to improve the readability, comprehensibility and
+reliability of software systems.
 
 \end{abstract}
 
