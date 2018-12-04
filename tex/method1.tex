@@ -224,7 +224,7 @@ $x_i=\{x_{i1},x_{i2},...,x_{iq}\}$，。从训练样本集$\mathcal D$中随机�
 $(x_{i,nm},-y_i)$（记作$near-miss_i$），然后分别计算$x_i$与$x_{i,nh}$和$x_i$与$x_{i,nm}$在第$j$个特
 征上的距离之差：
 \begin{equation}
-       \delta^j_i = -\text{diff}(x_i^j, x_{i,nh}^j)^2 + \text{diff}(x_i^j,x_{i,nm}^j)^2, \label{eq:delta}
+       \delta^j_i = -\text{diff}(x_i^j, x_{i,nh}^j) + \text{diff}(x_i^j,x_{i,nm}^j), \label{eq:delta}
 \end{equation}
 当特征$f_j$为离散型时：
 \begin{equation}\label{eq:lisan}
@@ -234,11 +234,11 @@ $(x_{i,nm},-y_i)$（记作$near-miss_i$），然后分别计算$x_i$与$x_{i,nh}
 \end{equation}
 当特征$f_j$为连续型时：
 \begin{equation}
-       \text{diff}(x^j_a,x^j_b) = |(x^j_a-x^j_b)|.
+       \text{diff}(x^j_a,x^j_b) = |x^j_a-x^j_b|.
 \end{equation}
 重复上述过程，从样本集中随机抽取样本$M$次，得到关于特征$f_j$的相关统计量：
 \begin{equation}
-       \delta^j = \frac{1}{M}\sum_{i=1}^M{-\text{diff}(x_i^j, x_{i,nh}^j)^2 + \text{diff}(x_i^j,x_{i,nm}^j)^2}. \label{eq:Delta}
+       \delta^j = \frac{1}{M}\sum_{i=1}^M{(-\text{diff}(x_i^j, x_{i,nh}^j) + \text{diff}(x_i^j,x_{i,nm}^j))}. \label{eq:Delta}
 \end{equation}
 
 从公式~\eqref{eq:delta}中可以看出，在第$j$个特征上，当$x_i$与其最近同类$x_{i,nh}$距离小，与其最近异
@@ -488,9 +488,9 @@ flex & 12\textasciitilde14k & 51 & 567\\ \bottomrule
 试用例的执行估算代码的可疑度，而缺失的代码既不会有覆盖信息，也不存在相应的可疑度，因此在评估方法有效
 性时存在问题；（3）排除了有可能引起程序运行时出现异常（segment fault），导致程序运行突然中止的缺陷，
 由于基于覆盖分析的缺陷定位技术依赖于测试用例集在整个程序执行过程中对代码的覆盖信息，而可能出现异常中
-止的程序导致部分测试用例的覆盖信息不完全，在计算可疑度的时候与其它测试用例不一，因故在实验中将这部分
-缺陷排除。最后在实验中一共使用了108个缺陷，并在实验中通过控制一个程序中所注入缺陷的个数来分别构造单
-缺陷和多缺陷的程序。
+止的程序导致部分测试用例的覆盖信息不完全，在计算可疑度的时候与其它测试用例无法统一，因此在实验中将这
+部分缺陷排除。最后在实验中一共使用了108个缺陷，并在实验中通过控制一个程序中所注入缺陷的个数来分别构
+造单缺陷和多缺陷的程序。
 
 \subsection{评估方法}
 本章在ubuntu14.10系统下进行实验，使用的gcc编译器版本为4.4.1。在执行测试用例之前，使用开源语法分析工
@@ -589,7 +589,7 @@ $P_{search}$(\%) & REL & TAR & JAC & OCH & UNI & INT\\ \midrule
 疑度（缺陷相关统计量）的大小，由高至低排查缺陷相关代码；后面两种方法根据之前的研究~\cite{wen2013}，
 首先排查集合范围内的代码，然后按照失效用例的执行路径顺序排查代码。为了公平比较前4种可疑度计算方法的
 有效性，本文对这4种方法均使用分支覆盖特征谱进行定位，然后按照算法\ref{alg:search}排查代码。最后，由
-于缺陷定位技术只有在早期排查到缺陷相关代码时被认为时对缺陷定位有帮助，且大多数缺陷定位技术在刚开始定
+于缺陷定位技术只有在早期排查到缺陷相关代码时被认为对缺陷定位有帮助，且大多数缺陷定位技术在刚开始定
 位时有较密集的缺陷发现，因此在表~\ref{tbl:single}中放大了前10\%的缺陷定位效果，将其分别表示成
 0\%\textasciitilde1\%、1\%\textasciitilde5\%、5\%\textasciitilde10\%三部分。
 
